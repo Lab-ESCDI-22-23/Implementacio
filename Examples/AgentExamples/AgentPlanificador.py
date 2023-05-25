@@ -229,6 +229,7 @@ def agentbehavior1():
     logger.info(infoagent_search_message(ragn_addr, ragn_uri).serialize(format='turtle'))
 
 
+"""
 #REBEM INFO PETICIÓ DEL COMUNICADOR
     #SERÀ UN GRAF, HEM D'OBTENIR ELS PARÀMETRES
 
@@ -260,7 +261,7 @@ def agentbehavior1():
 #IMPRIMIM PLANIFICACIÓ (després s'haurà d'enviar al comunicador)
     logger.info(gplan.serialize(format='turtle'))
 
-
+"""
 
 
 if __name__ == '__main__':

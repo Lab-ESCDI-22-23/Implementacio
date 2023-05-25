@@ -200,12 +200,15 @@ def comunicacion():
             # de registro
 
             # Averiguamos el tipo de la accion
+            logger.info("-----")
+            logger.info('content' in msgdic)
             if 'content' in msgdic:
                 content = msgdic['content']
                 accion = gm.value(subject=content, predicate=RDF.type)
+                logger.info(accion)
 
                 # Aqui realizariamos lo que pide la accion
-                if accion == "CercaVols": #ONTO.action.CercaVols?
+                if False: #accion == "CercaVols": #ONTO.action.CercaVols?
                     #OBTENIR PARAMETRES DEL GRAF
 
                     dataInici = "1/1/2024"
@@ -265,13 +268,82 @@ def comunicacion():
                                        msgcnt=mss_cnt,
                                        receiver=msgdic['sender'], )
 
-                else:
-                    # Por ahora simplemente retornamos un Inform-done
-                    gr = build_message(Graph(),
-                                   ACL['inform'],
-                                   sender=InfoAgent.uri,
-                                   msgcnt=mss_cnt,
-                                   receiver=msgdic['sender'], )
+            #else:
+
+
+            ##################################3
+
+            # "FER" PETICIÓ segons parametres (Consulta API o Random(utilitzant paramentres))
+            idVolAnada = "AAA"
+            idVolTornada = "BBB"
+            preuVolAnada = 100.0
+            preuVolTornada = 90.0
+            home = "BCN"
+            visit = "CDG"
+            data_anada = "12:00"  # tecnicament en format date
+            data_tornada = "3:00"
+            duracio_anada = 2.5
+            duracio_tornada = 3
+
+            logger.info("---PETICIO FETA---")
+
+            # CONSTRUIR GRAF DE RESPOSTA
+            gmess = Graph()
+            logger.info("---graf---")
+            prods = Namespace('http://la.nostra.ontologia.org/producte/')
+            vols = Namespace('http://la.nostra.ontologia.org/vols/')  # vols és subclasse de prods, com es fa?
+            logger.info("---namespaces---")
+
+            # gmess.bind('foaf', FOAF) cal?
+
+            # Construimos el mensaje de registro
+            vol_anada = prods.vol
+            vol_tornada = prods.vol
+            logger.info("---objectes---")
+
+            gmess.add((vol_anada, RDF.type, prods.vol))
+            gmess.add((vol_tornada, RDF.type, prods.vol))
+            logger.info("---tipus---")
+
+            gmess.add((vol_anada, prods.id, Literal(idVolAnada)))
+            gmess.add((vol_anada, prods.nom, Literal('vol_anada')))
+            gmess.add((vol_anada, prods.preu, Literal(preuVolAnada)))
+
+            gmess.add((vol_tornada, prods.id, Literal(idVolTornada)))
+            gmess.add((vol_tornada, prods.nom, Literal('vol_anada')))
+            gmess.add((vol_tornada, prods.preu, Literal(preuVolTornada)))
+
+            gmess.add((vol_anada, vols.desti, Literal(visit)))
+            gmess.add((vol_anada, vols.origen, Literal(home)))
+            gmess.add((vol_anada, vols.data, Literal(data_anada)))
+            gmess.add((vol_anada, vols.duracio, Literal(duracio_anada)))
+
+            gmess.add((vol_tornada, vols.desti, Literal(home)))
+            gmess.add((vol_tornada, vols.origen, Literal(visit)))
+            gmess.add((vol_tornada, vols.data, Literal(data_tornada)))
+            gmess.add((vol_tornada, vols.duracio, Literal(duracio_tornada)))
+            logger.info("---done---")
+
+            gr = build_message(gmess,
+                               ACL['inform'],
+                               sender=InfoAgent.uri,
+                               msgcnt=mss_cnt,
+                               receiver=msgdic['sender'], )
+            #fipa acl performativa inform?
+            logger.info("---built---")
+
+            #####################################
+
+            # Por ahora simplemente retornamos un Inform-done
+            """
+            logger.info('INFORM DONE')
+
+            gr = build_message(Graph(),
+                           ACL['inform'],
+                           sender=InfoAgent.uri,
+                           msgcnt=mss_cnt,
+                           receiver=msgdic['sender'], )
+            """
     mss_cnt += 1
 
     logger.info('Respondemos a la peticion')
