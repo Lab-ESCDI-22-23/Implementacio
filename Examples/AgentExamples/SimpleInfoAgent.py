@@ -297,8 +297,8 @@ def comunicacion():
             # gmess.bind('foaf', FOAF) cal?
 
             # Construimos el mensaje de registro
-            vol_anada = prods.vol
-            vol_tornada = prods.vol
+            vol_anada = prods.vol_a
+            vol_tornada = prods.vol_t
             logger.info("---objectes---")
 
             gmess.add((vol_anada, RDF.type, prods.vol))
@@ -310,7 +310,7 @@ def comunicacion():
             gmess.add((vol_anada, prods.preu, Literal(preuVolAnada)))
 
             gmess.add((vol_tornada, prods.id, Literal(idVolTornada)))
-            gmess.add((vol_tornada, prods.nom, Literal('vol_anada')))
+            gmess.add((vol_tornada, prods.nom, Literal('vol_Tornada')))
             gmess.add((vol_tornada, prods.preu, Literal(preuVolTornada)))
 
             gmess.add((vol_anada, vols.desti, Literal(visit)))
