@@ -93,6 +93,11 @@ AgenteHotel = Agent('AgenteHotel',
                             'http://%s:9010/comm' % hostname,
                             'http://%s:9010/Stop' % hostname)
 
+AgenteVuelos = Agent('AgenteVuelos',
+                            agn.AgenteVuelos,
+                            'http://%s:9012/comm' % hostname,
+                            'http://%s:9012/Stop' % hostname)
+
 # Global dsgraph triplestore
 dsgraph = Graph()
 
@@ -275,6 +280,92 @@ def buscar_hoteles(ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sy
 
 
 
+def buscar_vuelos(ciutat_origen=None, ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sys.float_info.max, fecha_salida=None):
+    global mss_cnt
+    g = Graph()
+
+    action = ONTO['BuscarVuelos_' + str(mss_cnt)]
+    g.add((action, RDF.type, ONTO.BuscarVuelos))
+    print("Buscar Vuelos v1")
+    if ciutat_origen:
+        cityRestrictionOrig = ONTO['RestriccionOrigenDesti' + str(mss_cnt)]
+        g.add((cityRestrictionOrig, RDF.type, ONTO.RestriccionOrigenDesti))
+        g.add((cityRestrictionOrig, ONTO.CiudadOrigen, Literal(ciutat_origen)))  # datatype=XSD.string !??!!?!?!?
+        g.add((action, ONTO.RestringidaPor, URIRef(cityRestrictionOrig)))
+    print("Buscar Vuelos v2")
+
+    if ciutat_desti:
+        cityRestrictionDest = ONTO['RestriccionOrigenDesti' + str(mss_cnt)]
+        g.add((cityRestrictionDest, RDF.type, ONTO.RestriccionOrigenDesti))
+        g.add((cityRestrictionDest, ONTO.CiudadDestino, Literal(ciutat_desti)))  # datatype=XSD.string !??!!?!?!?
+        g.add((action, ONTO.RestringidaPor, URIRef(cityRestrictionDest)))
+    print("Buscar Vuelos v2.1")
+
+    if preciomin:
+        minPriceRestriction = ONTO['RestriccionPrecio_' + str(mss_cnt)]
+        g.add((minPriceRestriction, RDF.type, ONTO.RestriccionPrecio))
+        g.add((minPriceRestriction, ONTO.PrecioMin, Literal(preciomin)))
+        g.add((action, ONTO.RestringidaPor, URIRef(minPriceRestriction)))
+    print("Buscar Vuelos v3")
+    if preciomax:
+        maxPriceRestriction = ONTO['RestriccionPrecio_' + str(mss_cnt)]
+        g.add((maxPriceRestriction, RDF.type, ONTO.RestriccionPrecio))
+        g.add((maxPriceRestriction, ONTO.PrecioMax, Literal(preciomax)))
+        g.add((action, ONTO.RestringidaPor, URIRef(maxPriceRestriction)))
+
+    print("Buscar Vuelos v4")
+    if fecha_salida:
+        fechaRestriction = ONTO['RestriccionFecha_' + str(mss_cnt)]
+        g.add((fechaRestriction, RDF.type, ONTO.RestriccionFecha))
+        g.add((fechaRestriction, ONTO.FechaSalida, Literal(fecha_salida)))
+        g.add((action, ONTO.RestringidaPor, URIRef(fechaRestriction)))
+    print("Buscar Vuelos v5")
+    msg = build_message(gmess=g, perf=ACL.request, sender= AgentePlanficador.uri, receiver=AgenteVuelos.uri, content=action, msgcnt= mss_cnt)
+    print("Buscar Vuelos v6")
+    mss_cnt += 1
+
+    gproducts = send_message(msg, AgenteVuelos.address)
+    print("Buscar Vuelos Fin")
+
+    flights_list = []
+    subjects_position = {}
+    pos = 0
+
+    for s, p, o in gproducts:
+        if s not in subjects_position:
+            subjects_position[s] = pos
+            pos += 1
+            flights_list.append({})
+        if s in subjects_position:
+            flight = flights_list[subjects_position[s]]
+            if p == RDF.type:
+                flight['url'] = s
+            if p == ONTO.Identificador:
+                flight['id'] = o
+            if p == ONTO.FechaSalida:
+                flight['fecha_salida'] = o
+            if p == ONTO.FechaLlegada:
+                flight['fecha_llegada'] = o
+            if p == ONTO.PrecioVuelo:
+                flight['precio'] = o
+            if p == ONTO.DuracionVuelo:
+                flight['duracion'] = o
+
+    # Imprimir flights_list
+    for flight in flights_list:
+        print("--- Vuelo ---")
+        print("ID:", flight.get('id'))
+        print("Fecha llegada:", flight.get('fecha_llegada'))
+        print("Fecha Salida:", flight.get('fecha_salida'))
+        print("Precio:", flight.get('precio'))
+        print("Duracion:", flight.get('duracion'))
+        print("---------------------")
+
+
+
+
+
+
 def tidyup():
     """
     Acciones previas a parar el agente
@@ -294,7 +385,8 @@ def agentbehavior1(cola):
     gr = register_message()
 
     # Escuchando la cola hasta que llegue un 0
-    buscar_hoteles("Barcelona", 10, 120, "Centro")
+    #buscar_hoteles("Barcelona", 10, 120, "Centro")
+    buscar_vuelos("BCN", "LON", 150, 200, "2023-05-28")
 
     pass
 

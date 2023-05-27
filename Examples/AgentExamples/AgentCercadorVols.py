@@ -56,7 +56,7 @@ __author__ = 'agracia'
 
 # Configuration stuff
 hostname = socket.gethostname()
-port = 9010
+port = 9012
 
 agn = Namespace("http://www.agentes.org#")
 
@@ -190,6 +190,13 @@ def convertir_duracion_a_minutos(duracion):
     return duracion_minutos
 
 def buscar_vuelos(ciutat_origen=None, ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sys.float_info.max, fecha_salida=None):
+
+        print ("orig: " + ciutat_origen)
+        print("dest: " + ciutat_desti)
+        print("precio min: " + str(preciomin))
+        print("precio max: " + str(preciomax))
+        print("Fecha salida: " + fecha_salida)
+
         response = amadeus.shopping.flight_offers_search.get(
             originLocationCode=ciutat_origen,
             destinationLocationCode=ciutat_desti,
@@ -202,29 +209,75 @@ def buscar_vuelos(ciutat_origen=None, ciutat_desti=None, preciomin=sys.float_inf
                             if float(flight_data['price']['total']) >= preciomin and
                             float(flight_data['price']['total']) <= preciomax]
 
+
         flight_data_ordenado_por_duracion = sorted(vuelos_filtrados, key=lambda x: convertir_duracion_a_minutos(
             x['itineraries'][0]['duration']))
 
+        result = Graph()
+        vuelos_count = 0
+        print(len(vuelos_filtrados))
+
         for flight_data in flight_data_ordenado_por_duracion:
             # Obtener información del precio
-            price_total = flight_data['price']['total']
+            vuelos_count += 1
+            print(vuelos_count)
+            precio_vuelo = flight_data['price']['total']
 
             # Obtener información de los itinerarios
             itineraries = flight_data['itineraries']
-            departure_date = itineraries[0]['segments'][0]['departure']['at']
-            arrival_date = itineraries[0]['segments'][-1]['arrival']['at']
-            duration = itineraries[0]['duration']
-
+            fecha_salida = itineraries[0]['segments'][0]['departure']['at']
+            fecha_llegada = itineraries[0]['segments'][-1]['arrival']['at']
+            duracion_vuelo = convertir_duracion_a_minutos(itineraries[0]['duration'])
             # Obtener identificador del vuelo
-            flight_id = flight_data['id']
+            id_vuelo = flight_data['id']
+            subject_vuelo = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#Vuelo" + id_vuelo)
 
-            # Imprimir la información
-            print("Precio total: ", price_total)
-            print("Fecha de salida: ", departure_date)
-            print("Fecha de llegada: ", arrival_date)
-            print("Duración: ", convertir_duracion_a_minutos(duration))
-            print("Identificador del vuelo: ", flight_id)
-            print("-----------------------------------")
+
+            result.add((subject_vuelo, RDF.type, ONTO.Vuelo))
+            result.add((subject_vuelo, ONTO.PrecioVuelo, Literal(precio_vuelo, datatype=XSD.float)))
+            result.add((subject_vuelo, ONTO.Identificador, Literal(id_vuelo, datatype=XSD.string)))
+            result.add((subject_vuelo, ONTO.FechaSalida, Literal(fecha_salida, datatype=XSD.string)))
+            result.add((subject_vuelo, ONTO.FechaLlegada, Literal(fecha_llegada, datatype=XSD.string)))
+            result.add((subject_vuelo, ONTO.DuracionVuelo, Literal(duracion_vuelo, datatype=XSD.float)))
+
+        print(vuelos_count)
+
+        flights_list = []
+        subjects_position = {}
+        pos = 0
+
+        for s, p, o in result:
+            if s not in subjects_position:
+                subjects_position[s] = pos
+                pos += 1
+                flights_list.append({})
+            if s in subjects_position:
+                flight = flights_list[subjects_position[s]]
+                if p == RDF.type:
+                    flight['url'] = s
+                if p == ONTO.Identificador:
+                    flight['id'] = o
+                if p == ONTO.FechaSalida:
+                    flight['fecha_salida'] = o
+                if p == ONTO.FechaLlegada:
+                    flight['fecha_llegada'] = o
+                if p == ONTO.PrecioVuelo:
+                    flight['precio'] = o
+                if p == ONTO.DuracionVuelo:
+                    flight['duracion'] = o
+
+        # Imprimir flights_list
+        for flight in flights_list:
+            print("--- Vuelo ---")
+            print("ID:", flight.get('id'))
+            print("Fecha llegada:", flight.get('fecha_llegada'))
+            print("Fecha Salida:", flight.get('fecha_salida'))
+            print("Precio:", flight.get('precio'))
+            print("Duracion:", flight.get('duracion'))
+            print("---------------------")
+
+
+        return result
 
 @app.route("/Stop")
 def stop():
@@ -253,7 +306,7 @@ def agentbehavior1(cola):
     :return:
     """
 
-    buscar_vuelos("BCN", "LON", 100, 150, "2023-05-28")
+    #buscar_vuelos("BCN", "LON", 100, 150, "2023-05-28")
     pass
 
 
