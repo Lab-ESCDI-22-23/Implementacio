@@ -89,23 +89,27 @@ def comunicacion():
 
     print('Peticion de informacion recibida')
 
-
-
     global dsgraph
     message = request.args['content']
+    print('El mensaje 1')
     gm = Graph()
-    gm.parse(data=message)
+    print('El mensaje 1.2')
+    print(message)
+    gm.parse(data=message, format='xml')
+    print('El mensaje 2')
     msgdic = get_message_properties(gm)
     gr = None
 
     if msgdic is None:
         # Si no es, respondemos que no hemos entendido el mensaje
+        print('Mensaje no entendido')
         gr = build_message(Graph(), ACL['not-understood'], sender=AgenteHotel.uri, msgcnt=get_count())
 
 
     else:
         # Obtenemos la performativa
         if msgdic['performative'] != ACL.request:
+            print('Mensaje no es request')
             # Si no es un request, respondemos que no hemos entendido el mensaje
             gr = build_message(Graph(),
                                ACL['not-understood'],
@@ -115,12 +119,14 @@ def comunicacion():
         else:
             # Extraemos el objeto del contenido que ha de ser una accion de la ontologia
             # de registro
+            print('Mensaje puede ser accion de onto')
             content = msgdic['content']
             # Averiguamos el tipo de la accion
             accion = gm.value(subject=content, predicate=RDF.type)
 
             # Accion de buscar productos
             if accion == ONTO.BuscarHoteles:
+                print("Works here")
                 restriccions = gm.objects(content, ONTO.RestringidaPor)
                 restriccions_dict = {}
                 # Per totes les restriccions que tenim en la cerca d'hotels
@@ -245,7 +251,7 @@ def agentbehavior1(cola):
     :return:
     """
 
-    buscar_hoteles("Barcelona", 10, 120, "Centro", 4)
+
     pass
 
 
