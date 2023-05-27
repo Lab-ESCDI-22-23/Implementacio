@@ -205,17 +205,15 @@ def buscar_vuelos(ciutat_origen=None, ciutat_desti=None, preciomin=sys.float_inf
         print("FLIGHTS")
         print("-----------------------------------")
 
-        vuelos_filtrados = [flight_data for flight_data in response.data
+        flight_data_ordenado_por_duracion = [flight_data for flight_data in response.data
                             if float(flight_data['price']['total']) >= preciomin and
                             float(flight_data['price']['total']) <= preciomax]
 
 
-        flight_data_ordenado_por_duracion = sorted(vuelos_filtrados, key=lambda x: convertir_duracion_a_minutos(
-            x['itineraries'][0]['duration']))
 
         result = Graph()
         vuelos_count = 0
-        print(len(vuelos_filtrados))
+        print(len(flight_data_ordenado_por_duracion))
 
         for flight_data in flight_data_ordenado_por_duracion:
             # Obtener información del precio
@@ -239,43 +237,6 @@ def buscar_vuelos(ciutat_origen=None, ciutat_desti=None, preciomin=sys.float_inf
             result.add((subject_vuelo, ONTO.FechaSalida, Literal(fecha_salida, datatype=XSD.string)))
             result.add((subject_vuelo, ONTO.FechaLlegada, Literal(fecha_llegada, datatype=XSD.string)))
             result.add((subject_vuelo, ONTO.DuracionVuelo, Literal(duracion_vuelo, datatype=XSD.float)))
-
-        print(vuelos_count)
-
-        flights_list = []
-        subjects_position = {}
-        pos = 0
-
-        for s, p, o in result:
-            if s not in subjects_position:
-                subjects_position[s] = pos
-                pos += 1
-                flights_list.append({})
-            if s in subjects_position:
-                flight = flights_list[subjects_position[s]]
-                if p == RDF.type:
-                    flight['url'] = s
-                if p == ONTO.Identificador:
-                    flight['id'] = o
-                if p == ONTO.FechaSalida:
-                    flight['fecha_salida'] = o
-                if p == ONTO.FechaLlegada:
-                    flight['fecha_llegada'] = o
-                if p == ONTO.PrecioVuelo:
-                    flight['precio'] = o
-                if p == ONTO.DuracionVuelo:
-                    flight['duracion'] = o
-
-        # Imprimir flights_list
-        for flight in flights_list:
-            print("--- Vuelo ---")
-            print("ID:", flight.get('id'))
-            print("Fecha llegada:", flight.get('fecha_llegada'))
-            print("Fecha Salida:", flight.get('fecha_salida'))
-            print("Precio:", flight.get('precio'))
-            print("Duracion:", flight.get('duracion'))
-            print("---------------------")
-
 
         return result
 

@@ -258,7 +258,7 @@ def buscar_hoteles(ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sy
                 hotel['url'] = s
             if p == ONTO.Identificador:
                 hotel['id'] = o
-            if p == ONTO.Nombre:
+            if p == ONTO.NombreHotel:
                 hotel['name'] = o
             if p == ONTO.CiudadHotel:
                 hotel['city'] = o
@@ -275,7 +275,7 @@ def buscar_hoteles(ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sy
         print("Ciudad:", hotel.get('city'))
         print("Precio:", hotel.get('price'))
         print("Ubicación:", hotel.get('location'))
-        print("Valoración:", hotel.get('rating'))
+
         print("---------------------")
 
 
@@ -385,8 +385,9 @@ def agentbehavior1(cola):
     gr = register_message()
 
     # Escuchando la cola hasta que llegue un 0
-    #buscar_hoteles("Barcelona", 10, 120, "Centro")
-    buscar_vuelos("BCN", "LON", 150, 200, "2023-05-28")
+    buscar_hoteles("Barcelona", 10, 120, "Centro")
+    buscar_vuelos("BCN", "LON", 50, 100, "2023-05-28")
+
 
     pass
 
