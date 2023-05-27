@@ -64,15 +64,18 @@ if __name__ == '__main__':
     try:
         response = amadeus.shopping.flight_offers_search.get(
             originLocationCode='BCN',
-            destinationLocationCode='PAR',
+            destinationLocationCode='LON',
             departureDate='2023-05-28',
             adults=1)
         print("FLIGHTS")
         print("-----------------------------------")
         #ppr.pprint(response.data[0])
 
+        vuelos_filtrados = [flight_data for flight_data in response.data
+                            if float(flight_data['price']['total']) >= 50 and
+                            float(flight_data['price']['total']) <= 100]
 
-        flight_data_ordenado_por_duracion = sorted(response.data, key=lambda x: convertir_duracion_a_minutos(x['itineraries'][0]['duration']))
+        flight_data_ordenado_por_duracion = sorted(vuelos_filtrados, key=lambda x: convertir_duracion_a_minutos(x['itineraries'][0]['duration']))
 
         for flight_data in flight_data_ordenado_por_duracion:
             # Obtener información del precio
