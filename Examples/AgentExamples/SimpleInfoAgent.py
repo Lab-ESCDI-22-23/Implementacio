@@ -24,7 +24,35 @@ from AgentUtil.Agent import Agent
 from AgentUtil.Logging import config_logger
 from AgentUtil.DSO import DSO
 from AgentUtil.Util import gethostname
+import sys
+from multiprocessing import Process, Queue
 import socket
+from flask import Flask, request
+from rdflib import Namespace, Graph
+from pyparsing import Literal
+from AgentUtil.FlaskServer import shutdown_server
+from AgentUtil.Agent import Agent
+from AgentUtil.OntoNamespaces import ONTO
+from Implementacio.Examples.AgentExamples.AgentUtil.ACLMessages import *
+
+
+from multiprocessing import Process
+import logging
+import argparse
+
+from flask import Flask, render_template, request
+from rdflib import Graph, Namespace
+from rdflib.namespace import FOAF, RDF
+from rdflib import XSD, Namespace, Literal, URIRef
+from AgentUtil.ACL import ACL
+from AgentUtil.DSO import DSO
+from AgentUtil.FlaskServer import shutdown_server
+from AgentUtil.ACLMessages import build_message, send_message
+from AgentUtil.Agent import Agent
+from AgentUtil.Logging import config_logger
+from AgentUtil.Util import gethostname
+import socket
+
 
 
 __author__ = 'javier'
@@ -80,6 +108,10 @@ agn = Namespace("http://www.agentes.org#")
 
 # Contador de mensajes
 mss_cnt = 0
+def get_count():
+    global mss_cnt
+    mss_cnt += 1
+    return mss_cnt
 
 # Datos del Agente
 InfoAgent = Agent('AgenteInfo1',
@@ -92,6 +124,12 @@ DirectoryAgent = Agent('DirectoryAgent',
                        agn.Directory,
                        'http://%s:%d/Register' % (dhostname, dport),
                        'http://%s:%d/Stop' % (dhostname, dport))
+
+
+AgenteHotel = Agent('AgenteHotel',
+                            agn.AgenteHotel,
+                            'http://%s:9010/comm' % hostname,
+                            'http://%s:9010/Stop' % hostname)
 
 # Global dsgraph triplestore
 dsgraph = Graph()

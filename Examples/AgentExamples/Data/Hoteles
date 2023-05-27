@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+   xmlns:OntologiaECSDI="http://www.owl-ontologies.com/OntologiaECSDI.owl#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+>
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_1">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">100.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Centro</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_1</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Barcelona</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Barcelona Centro</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_2">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">150.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Playa</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_2</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Barcelona</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Barcelona Playa</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+</rdf:RDF>

@@ -13,17 +13,38 @@ Asume que el agente de registro esta en el puerto 9000
 
 @author: javier
 """
-
+import sys
 from multiprocessing import Process, Queue
 import socket
-
+from flask import Flask, request
 from rdflib import Namespace, Graph
-from flask import Flask
-
+from pyparsing import Literal
 from AgentUtil.FlaskServer import shutdown_server
 from AgentUtil.Agent import Agent
+from AgentUtil.OntoNamespaces import ONTO
+from Implementacio.Examples.AgentExamples.AgentUtil.ACLMessages import *
+
+
+from multiprocessing import Process
+import logging
+import argparse
+
+from flask import Flask, render_template, request
+from rdflib import Graph, Namespace
+from rdflib.namespace import FOAF, RDF
+from rdflib import XSD, Namespace, Literal, URIRef
+from AgentUtil.ACL import ACL
+from AgentUtil.DSO import DSO
+from AgentUtil.FlaskServer import shutdown_server
+from AgentUtil.ACLMessages import build_message, send_message
+from AgentUtil.Agent import Agent
+from AgentUtil.Logging import config_logger
+from AgentUtil.Util import gethostname
+import socket
 
 __author__ = 'javier'
+
+
 
 # Configuration stuff
 hostname = socket.gethostname()
@@ -35,9 +56,8 @@ agn = Namespace("http://www.agentes.org#")
 mss_cnt = 0
 
 # Datos del Agente
-
-AgentePersonal = Agent('AgenteSimple',
-                       agn.AgenteSimple,
+AgenteHotel = Agent('AgenteHotel',
+                       agn.AgentSimple,
                        'http://%s:%d/comm' % (hostname, port),
                        'http://%s:%d/Stop' % (hostname, port))
 
@@ -56,16 +76,148 @@ cola1 = Queue()
 app = Flask(__name__)
 
 
+def get_count():
+    global mss_cnt
+    mss_cnt += 1
+    return mss_cnt
+
 @app.route("/comm")
 def comunicacion():
     """
     Entrypoint de comunicacion
     """
+
+    print('Peticion de informacion recibida')
+
+
+
     global dsgraph
-    global mss_cnt
-    pass
+    message = request.args['content']
+    gm = Graph()
+    gm.parse(data=message)
+    msgdic = get_message_properties(gm)
+    gr = None
+
+    if msgdic is None:
+        # Si no es, respondemos que no hemos entendido el mensaje
+        gr = build_message(Graph(), ACL['not-understood'], sender=AgenteHotel.uri, msgcnt=get_count())
 
 
+    else:
+        # Obtenemos la performativa
+        if msgdic['performative'] != ACL.request:
+            # Si no es un request, respondemos que no hemos entendido el mensaje
+            gr = build_message(Graph(),
+                               ACL['not-understood'],
+                               sender=AgenteHotel.uri,
+                               msgcnt=get_count())
+
+        else:
+            # Extraemos el objeto del contenido que ha de ser una accion de la ontologia
+            # de registro
+            content = msgdic['content']
+            # Averiguamos el tipo de la accion
+            accion = gm.value(subject=content, predicate=RDF.type)
+
+            # Accion de buscar productos
+            if accion == ONTO.BuscarHoteles:
+                restriccions = gm.objects(content, ONTO.RestringidaPor)
+                restriccions_dict = {}
+                # Per totes les restriccions que tenim en la cerca d'hotels
+                for restriccio in restriccions:
+                    if gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionCiudad:
+                        ciutat_desti = gm.value(subject=restriccio, predicate=ONTO.CiudadHotel)
+                        print('BÚSQUEDA->Restriccion de ciutat del hotel: ' + ciutat_desti)
+                        restriccions_dict['ciutat_desti'] = ciutat_desti
+
+                    elif gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionPrecio:
+                        preciomax = gm.value(subject=restriccio, predicate=ONTO.PrecioMax)
+                        preciomin = gm.value(subject=restriccio, predicate=ONTO.PrecioMin)
+                        if preciomin:
+                            print('BÚSQUEDA->Restriccion de precio minimo:' + preciomin)
+                            restriccions_dict['preciomin'] = preciomin.toPython()
+                        if preciomax:
+                            print('BÚSQUEDA->Restriccion de precio maximo:' + preciomax)
+                            restriccions_dict['preciomax'] = preciomax.toPython()
+
+
+                    elif gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionUbicacion:
+                        ubicacion = gm.value(subject=restriccio, predicate=ONTO.UbicacionHotel)
+                        print('BÚSQUEDA->Restriccion de Nombre: ' + ubicacion)
+                        restriccions_dict['ubicacion'] = ubicacion
+
+                    elif gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionDiasViaje:
+                        diasViaje = gm.value(subject=restriccio, predicate=ONTO.DiasViaje)
+                        print('BÚSQUEDA->Restriccion de Valoracion: ' + diasViaje)
+                        restriccions_dict['diasViaje'] = diasViaje
+
+                gr = buscar_hoteles(**restriccions_dict)
+
+    return gr.serialize(format='xml'), 200
+
+def buscar_hoteles(ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sys.float_info.max, ubicacion=None, diasViaje=None):
+    graph = Graph()
+    ontologyFile = open('./Data/Hoteles')
+    graph.parse(ontologyFile, format='xml')
+    first = second = 0
+    print("Funciona" + ciutat_desti)
+
+    query = """
+            prefix rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            prefix xsd:<http://www.w3.org/2001/XMLSchema#>
+            prefix default:<http://www.owl-ontologies.com/OntologiaECSDI.owl#>
+            prefix owl:<http://www.w3.org/2002/07/owl#>
+            SELECT DISTINCT ?hotel ?nombre ?precio ?id ?ubicacion ?ciutat_desti
+            where {
+                { ?hotel rdf:type default:Hotel }.
+                ?hotel default:CiudadHotel ?ciutat_desti .
+                ?hotel default:NombreHotel ?nombre .
+                ?hotel default:PrecioHotel ?precio .
+                ?hotel default:UbicacionHotel ?ubicacion .
+                ?hotel default:Identificador ?id . 
+                FILTER("""
+
+    if ciutat_desti is not None:
+        query += """str(?ciutat_desti) = '""" + ciutat_desti + """'"""
+        first = 1
+
+    if ubicacion is not None:
+        if first == 1:
+            query += """ && """
+        query += """str(?ubicacion) = '""" + ubicacion + """'"""
+        first = 1
+
+
+
+    if first == 1 or second == 1:
+        query += """ && """
+
+    print("Min: " + str(preciomin) + " Max: " + str(preciomax))
+    query += """?precio >= """ + str(preciomin) + """ &&
+                    ?precio <= """ + str(preciomax) + """  )}
+                    order by asc(UCASE(str(?nombre)))"""
+
+    graph_query = graph.query(query)
+    result = Graph()
+    hotel_count = 0
+    for row in graph_query:
+        nombre_hotel = row.nombre
+        print("Nombre del hotel --> " + nombre_hotel)
+        precio_hotel = row.precio
+        id_hotel = row.id
+        subject_hotel = row.hotel
+        ciudad_destino = row.ciutat_desti
+        ubicacion_hotel = row.ubicacion
+        hotel_count += 1
+        result.add((subject_hotel, RDF.type, ONTO.Hotel))
+        result.add((subject_hotel, ONTO.PrecioHotel, Literal(precio_hotel, datatype=XSD.float)))
+        result.add((subject_hotel, ONTO.Identificador, Literal(id_hotel, datatype=XSD.string)))
+        result.add((subject_hotel, ONTO.NombreHotel, Literal(nombre_hotel, datatype=XSD.string)))
+        result.add((subject_hotel, ONTO.UbicacionHotel, Literal(ubicacion_hotel, datatype=XSD.string)))
+        result.add((subject_hotel, ONTO.CiudadHotel, Literal(ciudad_destino, datatype=XSD.string)))
+
+    print(hotel_count)
+    return result
 @app.route("/Stop")
 def stop():
     """
@@ -92,6 +244,8 @@ def agentbehavior1(cola):
 
     :return:
     """
+
+    buscar_hoteles("Barcelona", 10, 120, "Centro", 4)
     pass
 
 
