@@ -98,6 +98,11 @@ AgenteVuelos = Agent('AgenteVuelos',
                             'http://%s:9012/comm' % hostname,
                             'http://%s:9012/Stop' % hostname)
 
+AgenteActividades = Agent('AgenteActividades',
+                            agn.AgenteVuelos,
+                            'http://%s:9013/comm' % hostname,
+                            'http://%s:9013/Stop' % hostname)
+
 # Global dsgraph triplestore
 dsgraph = Graph()
 
@@ -362,6 +367,86 @@ def buscar_vuelos(ciutat_origen=None, ciutat_desti=None, preciomin=sys.float_inf
         print("---------------------")
 
 
+def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, proporcion_ludico_festiva=0.5, proporcion_cultural=0.5):
+
+    global mss_cnt
+    g = Graph()
+
+    action = ONTO['BuscarActividades_' + str(mss_cnt)]
+    g.add((action, RDF.type, ONTO.BuscarActividades))
+    print("Buscar Actividades v1")
+    if carga_actividades:
+        cargaRestriction = ONTO['RestriccionNivelCarga_' + str(mss_cnt)]
+        g.add((cargaRestriction, RDF.type, ONTO.RestriccionNivelCarga))
+        g.add((cargaRestriction, ONTO.CargaActividades, Literal(carga_actividades)))  # datatype=XSD.string !??!!?!?!?
+        g.add((action, ONTO.RestringidaPor, URIRef(cargaRestriction)))
+    print("Buscar Actividades v2")
+
+    if nivel_precio:
+        nivelPrecioRestriction = ONTO['RestriccionNivelPrecio_' + str(mss_cnt)]
+        g.add((nivelPrecioRestriction, RDF.type, ONTO.RestriccionNivelPrecio))
+        g.add((nivelPrecioRestriction, ONTO.NivelPrecio, Literal(nivel_precio)))  # datatype=XSD.string !??!!?!?!?
+        g.add((action, ONTO.RestringidaPor, URIRef(nivelPrecioRestriction)))
+    print("Buscar Actividades v2.1")
+
+    if dias_viaje:
+        diasRestriction = ONTO['RestriccionDias_' + str(mss_cnt)]
+        g.add((diasRestriction, RDF.type, ONTO.RestriccionDias))
+        g.add((diasRestriction, ONTO.DiasViaje, Literal(dias_viaje)))
+        g.add((action, ONTO.RestringidaPor, URIRef(diasRestriction)))
+    print("Buscar Actividades v3")
+
+    if proporcion_ludico_festiva:
+        propLudiFestRestriction = ONTO['RestriccionProporcionActividades_' + str(mss_cnt)]
+        g.add((propLudiFestRestriction, RDF.type, ONTO.RestriccionProporcionActividades))
+        g.add((propLudiFestRestriction, ONTO.ProporcionLudicoFestiva, Literal(proporcion_ludico_festiva)))
+        g.add((action, ONTO.RestringidaPor, URIRef(propLudiFestRestriction)))
+
+    print("Buscar Actividades v4")
+    if proporcion_cultural:
+        propCultRestriction = ONTO['RestriccionProporcionActividades_' + str(mss_cnt)]
+        g.add((propCultRestriction, RDF.type, ONTO.RestriccionProporcionActividades))
+        g.add((propCultRestriction, ONTO.ProporcionCultural, Literal(proporcion_cultural)))
+        g.add((action, ONTO.RestringidaPor, URIRef(propCultRestriction)))
+
+
+    print("Buscar Actividades v5")
+    msg = build_message(gmess=g, perf=ACL.request, sender= AgentePlanficador.uri, receiver=AgenteActividades.uri, content=action, msgcnt= mss_cnt)
+    print("Buscar Actividades v6")
+    mss_cnt += 1
+    gproducts = send_message(msg, AgenteActividades.address)
+    print("Buscar Actividades Fin")
+
+    actividades_list = []
+    subjects_position = {}
+    pos = 0
+
+    for s, p, o in gproducts:
+        if s not in subjects_position:
+            subjects_position[s] = pos
+            pos += 1
+            actividades_list.append({})
+        if s in subjects_position:
+            actividad = actividades_list[subjects_position[s]]
+            if p == RDF.type:
+                actividad['url'] = s
+            if p == ONTO.Identificador:
+                actividad['id'] = o
+            if p == ONTO.NombreActividad:
+                actividad['nombre_actividad'] = o
+            if p == ONTO.NivelPrecio:
+                actividad['nivel_precio'] = o
+
+
+    # Imprimir flights_list
+    for actividad in actividades_list:
+        print("--- Actividad ---")
+        #print("ID:", actividad.get('id'))
+        print("Fecha llegada:", actividad.get('nombre_actividad'))
+        print("Fecha Salida:", actividad.get('nivel_precio'))
+
+        print("---------------------")
+
 
 
 
@@ -385,9 +470,9 @@ def agentbehavior1(cola):
     gr = register_message()
 
     # Escuchando la cola hasta que llegue un 0
-    buscar_hoteles("Barcelona", 10, 120, "Centro")
-    buscar_vuelos("BCN", "LON", 50, 100, "2023-05-28")
-
+    #buscar_hoteles("Barcelona", 10, 120, "Centro")
+    #buscar_vuelos("BCN", "LON", 50, 100, "2023-05-28")
+    buscar_actividades("Alta", 3, 5, 1, 1)
 
     pass
 

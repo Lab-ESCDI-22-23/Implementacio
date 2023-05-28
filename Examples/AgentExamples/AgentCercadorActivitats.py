@@ -140,7 +140,7 @@ def comunicacion():
                         restriccions_dict['carga_actividades'] = carga_actividades
 
                     elif gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionNivelPrecio:
-                        nivel_precio = gm.value(subject=restriccio, predicate=ONTO.PrecioMax)
+                        nivel_precio = gm.value(subject=restriccio, predicate=ONTO.NivelPrecio)
                         print('BÚSQUEDA->Restriccion de nivel de precio:' + nivel_precio)
                         restriccions_dict['nivel_precio'] = nivel_precio
 
@@ -183,7 +183,7 @@ def buscar_actividades_festivas():
 
         for item in data.get("results", []):
             name = item.get("name")
-            price_level = item.get("price_level")
+            price_level = item.get("price_level", "None")
             result = {"name": name, "price_level": price_level, "type": f"Consulta {i + 1}"}
             results.append(result)
 
@@ -209,7 +209,7 @@ def buscar_actividades_culturales():
 
         for item in data.get("results", []):
             name = item.get("name")
-            price_level = item.get("price_level")
+            price_level = item.get("price_level", "None")
             result = {"name": name, "price_level": price_level, "type": f"Consulta {i + 1}"}
             results.append(result)
 
@@ -228,8 +228,8 @@ def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, pro
 
 
         actividades_ludico_festivas = buscar_actividades_festivas()
-        actividades_ludico_festivas = buscar_actividades_festivas()
-        actividades_filtradas = [actividad for actividad in actividades_ludico_festivas if actividad["price_level"] is None or actividad["price_level"] <= nivel_precio]
+
+        actividades_filtradas = [actividad for actividad in actividades_ludico_festivas if actividad["price_level"] == "None" or (isinstance(actividad["price_level"], int) and actividad["price_level"] <= nivel_precio)]
 
 
         result = Graph()
@@ -238,9 +238,9 @@ def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, pro
         for consulta in actividades_filtradas:
             name = consulta["name"]
             price_level = consulta["price_level"]
-            print("Nombre: " + name)
-            print("Price level: " + str(price_level))
-            print("--------------")
+            #print("Nombre: " + name)
+            #print("Price level: " + str(price_level))
+            #print("--------------")
             type = consulta["type"]
             print("Este es el tipo: " + type)
             actividades_count += 1
@@ -249,7 +249,7 @@ def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, pro
             result.add((subject_actividades, ONTO.NombreActividad, Literal(name, datatype=XSD.string)))
             result.add((subject_actividades, ONTO.NivelPrecio, Literal(price_level, datatype=XSD.integer)))
 
-        print("FIN CONSTRUCCION - TODO OK")
+        print("FIN CONSTRUCCION - TODO OK - ENVIANDO GRAFO")
         return result
 
 @app.route("/Stop")
@@ -279,7 +279,7 @@ def agentbehavior1(cola):
     :return:
     """
 
-    buscar_actividades("Alta", 2, 5, 1, 0)
+    #buscar_actividades("Alta", 2, 5, 1, 0)
     pass
 
 
