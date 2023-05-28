@@ -41,14 +41,9 @@ from AgentUtil.ACLMessages import build_message, send_message
 from AgentUtil.Agent import Agent
 from AgentUtil.Logging import config_logger
 from AgentUtil.Util import gethostname
-from AgentUtil.APIKeys import AMADEUS_KEY, AMADEUS_SECRET
 import socket
 
 
-amadeus = Client(
-        client_id=AMADEUS_KEY,
-        client_secret=AMADEUS_SECRET
-    )
 
 __author__ = 'agracia'
 
@@ -64,7 +59,7 @@ agn = Namespace("http://www.agentes.org#")
 mss_cnt = 0
 
 # Datos del Agente
-AgenteActividades = Agent('AgenteVuelos',
+AgenteActividades = Agent('AgenteActividades',
                        agn.AgentSimple,
                        'http://%s:%d/comm' % (hostname, port),
                        'http://%s:%d/Stop' % (hostname, port))
@@ -111,7 +106,7 @@ def comunicacion():
     if msgdic is None:
         # Si no es, respondemos que no hemos entendido el mensaje
         print('Mensaje no entendido')
-        gr = build_message(Graph(), ACL['not-understood'], sender=AgenteVuelos.uri, msgcnt=get_count())
+        gr = build_message(Graph(), ACL['not-understood'], sender=AgenteActividades.uri, msgcnt=get_count())
 
 
     else:
@@ -121,7 +116,7 @@ def comunicacion():
             # Si no es un request, respondemos que no hemos entendido el mensaje
             gr = build_message(Graph(),
                                ACL['not-understood'],
-                               sender=AgenteVuelos.uri,
+                               sender=AgenteActividades.uri,
                                msgcnt=get_count())
 
         else:
@@ -133,111 +128,128 @@ def comunicacion():
             accion = gm.value(subject=content, predicate=RDF.type)
 
             # Accion de buscar productos
-            if accion == ONTO.BuscarVuelos:
+            if accion == ONTO.BuscarActividades:
                 print("Works here")
                 restriccions = gm.objects(content, ONTO.RestringidaPor)
                 restriccions_dict = {}
                 # Per totes les restriccions que tenim en la cerca d'hotels
                 for restriccio in restriccions:
-                    if gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionOrigenDesti:
-                        ciutat_origen = gm.value(subject=restriccio, predicate=ONTO.CiudadOrigen)
-                        ciutat_desti = gm.value(subject=restriccio, predicate=ONTO.CiudadDestino)
-                        print('BÚSQUEDA->Restriccion de origen de vuelo: ' + ciutat_origen)
-                        print('BÚSQUEDA->Restriccion de destino de vuelo: ' + ciutat_desti)
-                        restriccions_dict['ciutat_origen'] = ciutat_origen
-                        restriccions_dict['ciutat_desti'] = ciutat_desti
+                    if gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionNivelCarga:
+                        carga_actividades = gm.value(subject=restriccio, predicate=ONTO.CargaActividades)
+                        print('BÚSQUEDA->Restriccion de carga de actividades: ' + carga_actividades)
+                        restriccions_dict['carga_actividades'] = carga_actividades
 
-                    elif gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionPrecio:
-                        preciomax = gm.value(subject=restriccio, predicate=ONTO.PrecioMax)
-                        preciomin = gm.value(subject=restriccio, predicate=ONTO.PrecioMin)
-                        if preciomin:
-                            print('BÚSQUEDA->Restriccion de precio minimo:' + preciomin)
-                            restriccions_dict['preciomin'] = preciomin.toPython()
-                        if preciomax:
-                            print('BÚSQUEDA->Restriccion de precio maximo:' + preciomax)
-                            restriccions_dict['preciomax'] = preciomax.toPython()
+                    elif gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionNivelPrecio:
+                        nivel_precio = gm.value(subject=restriccio, predicate=ONTO.PrecioMax)
+                        print('BÚSQUEDA->Restriccion de nivel de precio:' + nivel_precio)
+                        restriccions_dict['nivel_precio'] = nivel_precio
 
 
-                    elif gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionFecha:
-                        fecha_salida = gm.value(subject=restriccio, predicate=ONTO.FechaSalida)
-                        print('BÚSQUEDA->Restriccion de fecha salida: ' + fecha_salida)
-                        restriccions_dict['fecha_salida'] = fecha_salida
+                    elif gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionDias:
+                        dias_viaje = gm.value(subject=restriccio, predicate=ONTO.DiasViaje)
+                        print('BÚSQUEDA->Restriccion de dias de viaje: ' + dias_viaje)
+                        restriccions_dict['dias_viaje'] = dias_viaje
 
-                gr = buscar_vuelos(**restriccions_dict)
+                    elif gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionProporcionActividades:
+                        proporcion_ludico_festiva = gm.value(subject=restriccio, predicate=ONTO.ProporcionLudicoFestiva)
+                        proporcion_cultural = gm.value(subject=restriccio, predicate=ONTO.ProporcionCultural)
+
+
+                        print('BÚSQUEDA->Restriccion de proporcion ludica y festiva: ' + proporcion_ludico_festiva)
+                        print('BÚSQUEDA->Restriccion de proporcion cultural: ' + proporcion_cultural)
+                        restriccions_dict['proporcion_ludico_festiva'] = proporcion_ludico_festiva
+                        restriccions_dict['proporcion_cultural'] = proporcion_cultural
+
+
+                gr = buscar_actividades(**restriccions_dict)
 
     return gr.serialize(format='xml'), 200
 
 
+def buscar_actividades_festivas():
 
-def convertir_duracion_a_minutos(duracion):
-    # Eliminar los caracteres no numéricos
-    duracion = duracion.replace("PT", "").replace("H", "H ").replace("M", "M ").strip()
+    urls = [
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=discoteca%20en%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA",
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=actividades%20ocio%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA",
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=parque%20atracciones%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA",
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=zoo%20cine%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA"
+    ]
 
-    # Dividir la cadena en horas y minutos
-    partes = duracion.split(" ")
-    horas = 0
-    minutos = 0
+    results = []
 
-    for parte in partes:
-        if parte.endswith("H"):
-            horas = int(parte[:-1])
-        elif parte.endswith("M"):
-            minutos = int(parte[:-1])
+    for i, url in enumerate(urls):
+        response = requests.get(url)
+        data = response.json()
 
-    # Calcular la duración total en minutos
-    duracion_minutos = horas * 60 + minutos
+        for item in data.get("results", []):
+            name = item.get("name")
+            price_level = item.get("price_level")
+            result = {"name": name, "price_level": price_level, "type": f"Consulta {i + 1}"}
+            results.append(result)
 
-    return duracion_minutos
 
-def buscar_vuelos(ciutat_origen=None, ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sys.float_info.max, fecha_salida=None):
+    print("FIN LLAMADA API - TODO OK")
+    return results
 
-        print ("orig: " + ciutat_origen)
-        print("dest: " + ciutat_desti)
-        print("precio min: " + str(preciomin))
-        print("precio max: " + str(preciomax))
-        print("Fecha salida: " + fecha_salida)
 
-        response = amadeus.shopping.flight_offers_search.get(
-            originLocationCode=ciutat_origen,
-            destinationLocationCode=ciutat_desti,
-            departureDate=fecha_salida,
-            adults=1)
-        print("FLIGHTS")
-        print("-----------------------------------")
+def buscar_actividades_culturales():
 
-        flight_data_ordenado_por_duracion = [flight_data for flight_data in response.data
-                            if float(flight_data['price']['total']) >= preciomin and
-                            float(flight_data['price']['total']) <= preciomax]
+    urls = [
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=discoteca%20en%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA",
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=actividades%20ocio%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA",
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=parque%20atracciones%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA",
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=zoo%20cine%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA"
+    ]
 
+    results = []
+
+    for i, url in enumerate(urls):
+        response = requests.get(url)
+        data = response.json()
+
+        for item in data.get("results", []):
+            name = item.get("name")
+            price_level = item.get("price_level")
+            result = {"name": name, "price_level": price_level, "type": f"Consulta {i + 1}"}
+            results.append(result)
+
+    print("FIN LLAMADA API - TODO OK")
+    return results
+
+
+
+def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, proporcion_ludico_festiva=0.5, proporcion_cultural=0.5):
+
+        print ("carga: " + carga_actividades)
+        print("nivel precio: " + str(nivel_precio))
+        print("dias viaje: " + str(dias_viaje))
+        print("Proporcion ludido y festiva: " + str(proporcion_ludico_festiva))
+        print("Proporcion cultural: " + str(proporcion_cultural))
+
+
+        actividades_ludico_festivas = buscar_actividades_festivas()
+        actividades_ludico_festivas = buscar_actividades_festivas()
+        actividades_filtradas = [actividad for actividad in actividades_ludico_festivas if actividad["price_level"] is None or actividad["price_level"] <= nivel_precio]
 
 
         result = Graph()
-        vuelos_count = 0
-        print(len(flight_data_ordenado_por_duracion))
+        actividades_count = 0
 
-        for flight_data in flight_data_ordenado_por_duracion:
-            # Obtener información del precio
-            vuelos_count += 1
-            print(vuelos_count)
-            precio_vuelo = flight_data['price']['total']
+        for consulta in actividades_filtradas:
+            name = consulta["name"]
+            price_level = consulta["price_level"]
+            print("Nombre: " + name)
+            print("Price level: " + str(price_level))
+            print("--------------")
+            type = consulta["type"]
+            print("Este es el tipo: " + type)
+            actividades_count += 1
+            subject_actividades = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#Actividad" + str(actividades_count))
+            result.add((subject_actividades, RDF.type, ONTO.Actividad))
+            result.add((subject_actividades, ONTO.NombreActividad, Literal(name, datatype=XSD.string)))
+            result.add((subject_actividades, ONTO.NivelPrecio, Literal(price_level, datatype=XSD.integer)))
 
-            # Obtener información de los itinerarios
-            itineraries = flight_data['itineraries']
-            fecha_salida = itineraries[0]['segments'][0]['departure']['at']
-            fecha_llegada = itineraries[0]['segments'][-1]['arrival']['at']
-            duracion_vuelo = convertir_duracion_a_minutos(itineraries[0]['duration'])
-            # Obtener identificador del vuelo
-            id_vuelo = flight_data['id']
-            subject_vuelo = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#Vuelo" + id_vuelo)
-
-
-            result.add((subject_vuelo, RDF.type, ONTO.Vuelo))
-            result.add((subject_vuelo, ONTO.PrecioVuelo, Literal(precio_vuelo, datatype=XSD.float)))
-            result.add((subject_vuelo, ONTO.Identificador, Literal(id_vuelo, datatype=XSD.string)))
-            result.add((subject_vuelo, ONTO.FechaSalida, Literal(fecha_salida, datatype=XSD.string)))
-            result.add((subject_vuelo, ONTO.FechaLlegada, Literal(fecha_llegada, datatype=XSD.string)))
-            result.add((subject_vuelo, ONTO.DuracionVuelo, Literal(duracion_vuelo, datatype=XSD.float)))
-
+        print("FIN CONSTRUCCION - TODO OK")
         return result
 
 @app.route("/Stop")
@@ -267,7 +279,7 @@ def agentbehavior1(cola):
     :return:
     """
 
-    #buscar_vuelos("BCN", "LON", 100, 150, "2023-05-28")
+    buscar_actividades("Alta", 2, 5, 1, 0)
     pass
 
 
