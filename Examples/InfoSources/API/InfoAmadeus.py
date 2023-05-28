@@ -61,42 +61,15 @@ if __name__ == '__main__':
     ppr = PrettyPrinter(indent=4)
 
     # Flights query
+    # Activities query
     try:
-        response = amadeus.shopping.flight_offers_search.get(
-            originLocationCode='BCN',
-            destinationLocationCode='LON',
-            departureDate='2023-05-28',
-            adults=1)
-        print("FLIGHTS")
+        response = amadeus.shopping.activities.by_square.get(north=41.412552, west=2.22134938,
+                                                             south=41.387958, east=2.110627)
+        print("ACTIVITIES")
         print("-----------------------------------")
-        #ppr.pprint(response.data[0])
 
-        vuelos_filtrados = [flight_data for flight_data in response.data
-                            if float(flight_data['price']['total']) >= 50 and
-                            float(flight_data['price']['total']) <= 100]
+        ppr.pprint(response.data)
 
-        flight_data_ordenado_por_duracion = sorted(vuelos_filtrados, key=lambda x: convertir_duracion_a_minutos(x['itineraries'][0]['duration']))
-
-        for flight_data in flight_data_ordenado_por_duracion:
-            # Obtener información del precio
-            price_total = flight_data['price']['total']
-
-            # Obtener información de los itinerarios
-            itineraries = flight_data['itineraries']
-            departure_date = itineraries[0]['segments'][0]['departure']['at']
-            arrival_date = itineraries[0]['segments'][-1]['arrival']['at']
-            duration = itineraries[0]['duration']
-
-            # Obtener identificador del vuelo
-            flight_id = flight_data['id']
-
-            # Imprimir la información
-            print("Precio total: ", price_total)
-            print("Fecha de salida: ", departure_date)
-            print("Fecha de llegada: ", arrival_date)
-            print("Duración: ", convertir_duracion_a_minutos(duration))
-            print("Identificador del vuelo: ", flight_id)
-            print("-----------------------------------")
     except ResponseError as error:
         print(error)
 

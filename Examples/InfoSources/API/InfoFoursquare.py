@@ -14,29 +14,34 @@ acceso a FourSquare (FQCLIENT_ID, FQCLIENT_SECRET)
 
 @author: javier
 """
+import json
+
+import requests
 __author__ = 'javier'
 
 import foursquare
-from AgentUtil.APIKeys import FQCLIENT_ID, FQCLIENT_SECRET
+#from AgentUtil.APIKeys import FQCLIENT_ID, FQCLIENT_SECRET
 
 
-CLIENT_ID = FQCLIENT_ID
-CLIENT_SECRET = FQCLIENT_SECRET
+#CLIENT_ID = FQCLIENT_ID
+#CLIENT_SECRET = FQCLIENT_SECRET
 
 # Se conecta a FQ con la información de acceso
-client = foursquare.Foursquare(client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
+if __name__ == '__main__':
+    url = "https://api.foursquare.com/v3/places/search?query=cultura&ll=41.3851%2C2.1734&radius=5000"
 
-# Hace la consulta a FQ
-v = client.venues.search(params={'ll': '41.4,2.14', 'intent': 'browse', 'radius': '4000', 'query': 'museo'})
+    headers = {
+        "accept": "application/json",
+        "Authorization": "fsq3NP3orIfjrH0u3ku9BYlb+AThGV7nKvM4EXO3PjKxXWM="
+    }
 
-# De la respuesta imprime lo que hay en la clave 'venues' del diccionario respuesta
-print("Number of hits: ", len(v['venues']))
+    response = requests.get(url, headers=headers)
+    data = response.json()  # Obtener el contenido JSON de la respuesta
 
 
-# Imprime información de cada uno de los lugares encontrados
-for vn in v['venues']:
-    print('-----------------')
-    print(vn['name'])
-    if len(vn['categories']) != 0:
-        print(vn['categories'][0]['name'])
-
+    for result in data["results"]:
+        name = result["name"]
+        fsq_id = result["fsq_id"]
+        print("Name:", name)
+        print("fsq_id:", fsq_id)
+        print("---")
