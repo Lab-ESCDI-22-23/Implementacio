@@ -6,7 +6,7 @@ Antes de ejecutar hay que añadir la raiz del proyecto a la variable PYTHONPATH
 
 Agente que se registra como agente de hoteles y espera peticiones
 
-@author: javier
+@author: agracia
 """
 
 from multiprocessing import Process, Queue
@@ -470,8 +470,8 @@ def agentbehavior1(cola):
     gr = register_message()
 
     # Escuchando la cola hasta que llegue un 0
-    #buscar_hoteles("Barcelona", 10, 120, "Centro")
-    #buscar_vuelos("BCN", "LON", 50, 100, "2023-05-28")
+    buscar_hoteles("Barcelona", 10, 120, "Centro")
+    buscar_vuelos("BCN", "LON", 50, 100, "2023-05-30")
     buscar_actividades("Alta", 3, 5, 1, 1)
 
     pass
