@@ -581,7 +581,7 @@ def agentbehavior1(cola):
     logger.info('Register Done')
 
 
-    # Escuchando la cola hasta que llegue un 0
+    # PARALELISME
     logger.info('Creating')
     p1 = Process(target=buscar_hoteles, args=("Barcelona", 10, 120, "Centro"))
     p2 = Process(target=buscar_vuelos, args=("BCN", "LON", 50, 100, "2023-06-30"))
