@@ -252,6 +252,7 @@ def comunicacion():
                     gr = buscar_vuelos(**restriccions_dict)
 
                     # CREAR VIATGE [Paralelisme?]
+                    """
                     logger.info('Hotels')
                     hotels = buscar_hoteles(**restriccions_hotels) #"Barcelona", 10, 120, "Centro"
                     logger.info('Hotels Done')
@@ -274,6 +275,7 @@ def comunicacion():
                     elif activitats.size() > 0:  # num dies
                         logger.info('No hi ha prous activitats disponibles amb els requeriments introduits')
                     else:
+                    """
 
                 gr = None #CONSTRUIR GRAF DE RESPOSTA
                 """
@@ -296,6 +298,8 @@ def comunicacion():
 
 
 def buscar_hoteles(ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sys.float_info.max, ubicacion=None):
+    logger.info('Inici Buscar Hotels')
+
     global mss_cnt
     g = Graph()
 
@@ -329,8 +333,11 @@ def buscar_hoteles(ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sy
     msg = build_message(gmess=g, perf=ACL.request, sender= AgentePlanficador.uri, receiver=AgenteHotel.uri, content=action, msgcnt= mss_cnt)
     print("Buscar hoteles v6")
     mss_cnt += 1
+    logger.info('Enviar Buscar Hotels')
     gproducts = send_message(msg, AgenteHotel.address)
-    print("Buscar hoteles v7")
+    logger.info('Rebre Buscar Hotels')
+
+    print("Buscar hoteles fin")
 
     hotels_list = []
     subjects_position = {}
@@ -355,6 +362,9 @@ def buscar_hoteles(ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sy
             if p == ONTO.UbicacionHotel:
                 hotel["location"] = o
 
+    logger.info('Fi Buscar hotels')
+    return hotels_list
+    """
     # Print de hotels_list
     for hotel in hotels_list:
         print("--- Hotel ---")
@@ -365,11 +375,13 @@ def buscar_hoteles(ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sy
         print("Ubicación:", hotel.get('location'))
 
         print("---------------------")
+    """
 
-    return hotels_list
 
 
 def buscar_vuelos(ciutat_origen=None, ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sys.float_info.max, fecha_salida=None):
+    logger.info('Inici Buscar Vols')
+
     global mss_cnt
     g = Graph()
 
@@ -412,8 +424,9 @@ def buscar_vuelos(ciutat_origen=None, ciutat_desti=None, preciomin=sys.float_inf
     msg = build_message(gmess=g, perf=ACL.request, sender= AgentePlanficador.uri, receiver=AgenteVuelos.uri, content=action, msgcnt= mss_cnt)
     print("Buscar Vuelos v6")
     mss_cnt += 1
-
+    logger.info('Enviar Buscar Vols')
     gproducts = send_message(msg, AgenteVuelos.address)
+    logger.info('Rebre Buscar Vols')
     print("Buscar Vuelos Fin")
 
     flights_list = []
@@ -440,6 +453,10 @@ def buscar_vuelos(ciutat_origen=None, ciutat_desti=None, preciomin=sys.float_inf
             if p == ONTO.DuracionVuelo:
                 flight['duracion'] = o
 
+    logger.info('Fi Buscar Vols')
+
+    return flights_list
+    """
     # Imprimir flights_list
     for flight in flights_list:
         print("--- Vuelo ---")
@@ -449,10 +466,11 @@ def buscar_vuelos(ciutat_origen=None, ciutat_desti=None, preciomin=sys.float_inf
         print("Precio:", flight.get('precio'))
         print("Duracion:", flight.get('duracion'))
         print("---------------------")
+    """
 
-    return flights_list
 
 def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, proporcion_ludico_festiva=0.5, proporcion_cultural=0.5):
+    logger.info('Inici Buscar Activitats')
 
     global mss_cnt
     g = Graph()
@@ -499,7 +517,10 @@ def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, pro
     msg = build_message(gmess=g, perf=ACL.request, sender= AgentePlanficador.uri, receiver=AgenteActividades.uri, content=action, msgcnt= mss_cnt)
     print("Buscar Actividades v6")
     mss_cnt += 1
+    logger.info('Enviar Buscar Activitats')
     gproducts = send_message(msg, AgenteActividades.address)
+    logger.info('Rebre Buscar Activitats')
+
     print("Buscar Actividades Fin")
 
     actividades_list = []
@@ -522,7 +543,10 @@ def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, pro
             if p == ONTO.NivelPrecio:
                 actividad['nivel_precio'] = o
 
+    logger.info('Fi Buscar Acivitats')
 
+    return actividades_list
+    """
     # Imprimir flights_list
     for actividad in actividades_list:
         print("--- Actividad ---")
@@ -531,8 +555,8 @@ def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, pro
         print("Fecha Salida:", actividad.get('nivel_precio'))
 
         print("---------------------")
+    """
 
-    return actividades_list
 
 
 
@@ -558,8 +582,22 @@ def agentbehavior1(cola):
 
 
     # Escuchando la cola hasta que llegue un 0
+    logger.info('Creating')
+    p1 = Process(target=buscar_hoteles, args=("Barcelona", 10, 120, "Centro"))
+    p2 = Process(target=buscar_vuelos, args=("BCN", "LON", 50, 100, "2023-06-30"))
+    p3 = Process(target=buscar_actividades, args=("Alta", 3, 5, 1, 1))
+    logger.info('Starting')
+    p1.start()
+    p2.start()
+    p3.start()
+    logger.info('Joining')
+    p1.join()
+    p2.join()
+    p3.join()
+    logger.info('Done')
 
 
+    """
     logger.info('Hotels')
     hotels = buscar_hoteles("Barcelona", 10, 120, "Centro")
     logger.info('Hotels Done')
@@ -583,6 +621,8 @@ def agentbehavior1(cola):
         logger.info('No hi ha prous activitats disponibles amb els requeriments introduits')
     else:
         logger.info('Planejant')
+
+    """
 
     pass
 
