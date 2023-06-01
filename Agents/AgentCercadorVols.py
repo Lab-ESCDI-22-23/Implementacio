@@ -53,7 +53,53 @@ amadeus = Client(
 __author__ = 'agracia'
 
 
+if True:
+    # Definimos los parametros de la linea de comandos
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--open', help="Define si el servidor esta abierto al exterior o no", action='store_true',
+                        default=False)
+    parser.add_argument('--verbose', help="Genera un log de la comunicacion del servidor web", action='store_true',
+                            default=False)
+    parser.add_argument('--port', type=int, help="Puerto de comunicacion del agente")
+    parser.add_argument('--dhost', help="Host del agente de directorio")
+    parser.add_argument('--dport', type=int, help="Puerto de comunicacion del agente de directorio")
 
+    # Logging
+    logger = config_logger(level=1)
+
+    # parsing de los parametros de la linea de comandos
+    args = parser.parse_args()
+
+    # Configuration stuff
+    if args.port is None:
+        port = 9012
+    else:
+        port = args.port
+
+    if args.open:
+        hostname = '0.0.0.0'
+        hostaddr = gethostname()
+    else:
+        hostaddr = hostname = socket.gethostname()
+
+    print('DS Hostname =', hostaddr)
+
+    if args.dport is None:
+        dport = 9000
+    else:
+        dport = args.dport
+
+    if args.dhost is None:
+        dhostname = socket.gethostname()
+    else:
+        dhostname = args.dhost
+
+    # Flask stuff
+    app = Flask(__name__)
+    if not args.verbose:
+        log = logging.getLogger('werkzeug')
+        log.setLevel(logging.ERROR)
+        
 # Configuration stuff
 hostname = socket.gethostname()
 port = 9012
@@ -80,8 +126,6 @@ dsgraph = Graph()
 
 cola1 = Queue()
 
-# Flask stuff
-app = Flask(__name__)
 
 
 def get_count():
