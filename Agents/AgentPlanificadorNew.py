@@ -33,7 +33,7 @@ from pyparsing import Literal
 from AgentUtil.FlaskServer import shutdown_server
 from AgentUtil.Agent import Agent
 from AgentUtil.OntoNamespaces import ONTO
-from Implementacio.Examples.AgentExamples.AgentUtil.ACLMessages import *
+from AgentUtil.ACLMessages import *
 
 
 from multiprocessing import Process
@@ -57,17 +57,52 @@ import socket
 
 __author__ = 'javier'
 
-hostname = socket.gethostname()
+if True:
+    # Definimos los parametros de la linea de comandos
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--open', help="Define si el servidor esta abierto al exterior o no", action='store_true',
+                        default=False)
+    parser.add_argument('--verbose', help="Genera un log de la comunicacion del servidor web", action='store_true',
+                            default=False)
+    parser.add_argument('--port', type=int, help="Puerto de comunicacion del agente")
+    parser.add_argument('--dhost', help="Host del agente de directorio")
+    parser.add_argument('--dport', type=int, help="Puerto de comunicacion del agente de directorio")
 
-# Logging
-logger = config_logger(level=1)
+    # Logging
+    logger = config_logger(level=1)
 
-# Configuration stuff
-port = 9011
+    # parsing de los parametros de la linea de comandos
+    args = parser.parse_args()
 
-app = Flask(__name__)
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
+    # Configuration stuff
+    if args.port is None:
+        port = 9011
+    else:
+        port = args.port
+
+    if args.open:
+        hostname = '0.0.0.0'
+        hostaddr = gethostname()
+    else:
+        hostaddr = hostname = socket.gethostname()
+
+    print('DS Hostname =', hostaddr)
+
+    if args.dport is None:
+        dport = 9000
+    else:
+        dport = args.dport
+
+    if args.dhost is None:
+        dhostname = socket.gethostname()
+    else:
+        dhostname = args.dhost
+
+    # Flask stuff
+    app = Flask(__name__)
+    if not args.verbose:
+        log = logging.getLogger('werkzeug')
+        log.setLevel(logging.ERROR)
 
 # Configuration constants and variables
 agn = Namespace("http://www.agentes.org#")
@@ -94,8 +129,8 @@ DirectoryAgent = Agent('DirectoryAgent',
 
 AgenteHotel = Agent('AgenteHotel',
                             agn.AgenteHotel,
-                            'http://%s:9010/comm' % hostname,
-                            'http://%s:9010/Stop' % hostname)
+                            'http://%s:9010/comm' % "clients-xsf-101.upc.es",
+                            'http://%s:9010/Stop' % "clients-xsf-101.upc.es")
 
 AgenteVuelos = Agent('AgenteVuelos',
                             agn.AgenteVuelos,
@@ -138,7 +173,7 @@ def register_message():
     gmess.add((reg_obj, DSO.Uri, AgentePlanficador.uri))
     gmess.add((reg_obj, FOAF.name, Literal(AgentePlanficador.name)))
     gmess.add((reg_obj, DSO.Address, Literal(AgentePlanficador.address)))
-    gmess.add((reg_obj, DSO.AgentType, DSO.HotelsAgent))
+    gmess.add((reg_obj, DSO.AgentType, DSO.PersonalAgent))
 
     # Lo metemos en un envoltorio FIPA-ACL y lo enviamos
     gr = send_message(
@@ -195,7 +230,7 @@ def comunicacion():
     if msgdic is None:
         # Si no es, respondemos que no hemos entendido el mensaje
         print('Mensaje no entendido')
-        gr = build_message(Graph(), ACL['not-understood'], sender=AgenteHotel.uri, msgcnt=get_count())
+        gr = build_message(Graph(), ACL['not-understood'], sender=AgentePlanficador.uri, msgcnt=get_count())
 
     else:
         # Obtenemos la performativa
@@ -204,7 +239,7 @@ def comunicacion():
             # Si no es un request, respondemos que no hemos entendido el mensaje
             gr = build_message(Graph(),
                                ACL['not-understood'],
-                               sender=AgenteHotel.uri,
+                               sender=AgentePlanficador.uri,
                                msgcnt=get_count())
 
         else:
@@ -290,7 +325,7 @@ def comunicacion():
                 print('Accio no reconeguda')
                 gr = build_message(Graph(),
                                    ACL['not-understood'],
-                                   sender=AgenteHotel.uri,
+                                   sender=AgentePlanficador.uri,
                                    msgcnt=get_count())
 
 
@@ -577,23 +612,23 @@ def agentbehavior1(cola):
     """
     # Registramos el agente
     logger.info('Register')
-    gr = register_message()
+    #gr = register_message()
     logger.info('Register Done')
 
 
     # PARALELISME
     logger.info('Creating')
     p1 = Process(target=buscar_hoteles, args=("Barcelona", 10, 120, "Centro"))
-    p2 = Process(target=buscar_vuelos, args=("BCN", "LON", 50, 100, "2023-06-30"))
-    p3 = Process(target=buscar_actividades, args=("Alta", 3, 5, 1, 1))
+    #p2 = Process(target=buscar_vuelos, args=("BCN", "LON", 50, 100, "2023-06-30"))
+    #p3 = Process(target=buscar_actividades, args=("Alta", 3, 5, 1, 1))
     logger.info('Starting')
     p1.start()
-    p2.start()
-    p3.start()
+    #p2.start()
+    #p3.start()
     logger.info('Joining')
     p1.join()
-    p2.join()
-    p3.join()
+    #p2.join()
+    #p3.join()
     logger.info('Done')
 
 
