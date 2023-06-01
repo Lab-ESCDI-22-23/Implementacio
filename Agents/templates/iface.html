@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title></title>
+</head>
+
+<body>
+    <form method="post" action="">
+        <p><label>Username:</label> <input type="text" name="username" required></p>
+
+        <fieldset>
+            <legend>Dates:</legend>
+            <label for="start">Start date:</label>
+            <input type="date" id="start" name="start" required>
+            <label for="end">Return date:</label>
+            <input type="date" id="end" name="end" required>
+        </fieldset>
+
+        <fieldset>
+            <legend>Destination:</legend>
+            <label>From:</label> <input type="text" id="from" name="from" required>
+            <label>To:</label> <input type="text" id="to" name="to" required>
+            <label for="location">Choose the location:</label>
+            <select id="location" name="location" required>
+                <option value="downtown">Downtown</option>
+                <option value="outside">Outside</option>
+            </select>
+        </fieldset>
+
+        <p>
+            <label for="budget">Budget:</label>
+            <input type="number" id="budget" name="budget" min="100" max="100000" required>
+        </p>
+
+        <fieldset>
+            <legend>Type of Activities:</legend>
+            <label for="playful">Playful:</label>
+            <input type="number" id="playful" name="playful" min="0" max="10" required>
+            <label for="cultural">Cultural:</label>
+            <input type="number" id="cultural" name="cultural" min="0" max="10" required>
+            <label for="festive">Festive:</label>
+            <input type="number" id="festive" name="festive" min="0" max="10" required>
+        </fieldset>
+
+        <button type="submit">Send</button>
+    </form>
+</body>
+
+</html>
