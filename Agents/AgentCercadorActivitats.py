@@ -23,7 +23,7 @@ from pyparsing import Literal
 from AgentUtil.FlaskServer import shutdown_server
 from AgentUtil.Agent import Agent
 from AgentUtil.OntoNamespaces import ONTO
-from Implementacio.Examples.AgentExamples.AgentUtil.ACLMessages import *
+from AgentUtil.ACLMessages import *
 
 
 from multiprocessing import Process

@@ -13,6 +13,7 @@ Asume que el agente de registro esta en el puerto 9000
 
 @author: javier
 """
+from amadeus import Client, ResponseError
 import sys
 from multiprocessing import Process, Queue
 import socket
@@ -22,7 +23,7 @@ from pyparsing import Literal
 from AgentUtil.FlaskServer import shutdown_server
 from AgentUtil.Agent import Agent
 from AgentUtil.OntoNamespaces import ONTO
-from Implementacio.Examples.AgentExamples.AgentUtil.ACLMessages import *
+from AgentUtil.ACLMessages import *
 
 
 from multiprocessing import Process
@@ -40,15 +41,22 @@ from AgentUtil.ACLMessages import build_message, send_message
 from AgentUtil.Agent import Agent
 from AgentUtil.Logging import config_logger
 from AgentUtil.Util import gethostname
+from AgentUtil.APIKeys import AMADEUS_KEY, AMADEUS_SECRET
 import socket
 
-__author__ = 'javier'
+
+amadeus = Client(
+        client_id=AMADEUS_KEY,
+        client_secret=AMADEUS_SECRET
+    )
+
+__author__ = 'agracia'
 
 
 
 # Configuration stuff
 hostname = socket.gethostname()
-port = 9010
+port = 9012
 
 agn = Namespace("http://www.agentes.org#")
 
@@ -56,7 +64,7 @@ agn = Namespace("http://www.agentes.org#")
 mss_cnt = 0
 
 # Datos del Agente
-AgenteHotel = Agent('AgenteHotel',
+AgenteVuelos = Agent('AgenteVuelos',
                        agn.AgentSimple,
                        'http://%s:%d/comm' % (hostname, port),
                        'http://%s:%d/Stop' % (hostname, port))
@@ -103,7 +111,7 @@ def comunicacion():
     if msgdic is None:
         # Si no es, respondemos que no hemos entendido el mensaje
         print('Mensaje no entendido')
-        gr = build_message(Graph(), ACL['not-understood'], sender=AgenteHotel.uri, msgcnt=get_count())
+        gr = build_message(Graph(), ACL['not-understood'], sender=AgenteVuelos.uri, msgcnt=get_count())
 
 
     else:
@@ -113,7 +121,7 @@ def comunicacion():
             # Si no es un request, respondemos que no hemos entendido el mensaje
             gr = build_message(Graph(),
                                ACL['not-understood'],
-                               sender=AgenteHotel.uri,
+                               sender=AgenteVuelos.uri,
                                msgcnt=get_count())
 
         else:
@@ -125,15 +133,18 @@ def comunicacion():
             accion = gm.value(subject=content, predicate=RDF.type)
 
             # Accion de buscar productos
-            if accion == ONTO.BuscarHoteles:
+            if accion == ONTO.BuscarVuelos:
                 print("Works here")
                 restriccions = gm.objects(content, ONTO.RestringidaPor)
                 restriccions_dict = {}
                 # Per totes les restriccions que tenim en la cerca d'hotels
                 for restriccio in restriccions:
-                    if gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionCiudad:
-                        ciutat_desti = gm.value(subject=restriccio, predicate=ONTO.CiudadHotel)
-                        print('BÚSQUEDA->Restriccion de ciutat del hotel: ' + ciutat_desti)
+                    if gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionOrigenDesti:
+                        ciutat_origen = gm.value(subject=restriccio, predicate=ONTO.CiudadOrigen)
+                        ciutat_desti = gm.value(subject=restriccio, predicate=ONTO.CiudadDestino)
+                        print('BÚSQUEDA->Restriccion de origen de vuelo: ' + ciutat_origen)
+                        print('BÚSQUEDA->Restriccion de destino de vuelo: ' + ciutat_desti)
+                        restriccions_dict['ciutat_origen'] = ciutat_origen
                         restriccions_dict['ciutat_desti'] = ciutat_desti
 
                     elif gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionPrecio:
@@ -147,83 +158,88 @@ def comunicacion():
                             restriccions_dict['preciomax'] = preciomax.toPython()
 
 
-                    elif gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionUbicacion:
-                        ubicacion = gm.value(subject=restriccio, predicate=ONTO.UbicacionHotel)
-                        print('BÚSQUEDA->Restriccion de Nombre: ' + ubicacion)
-                        restriccions_dict['ubicacion'] = ubicacion
+                    elif gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionFecha:
+                        fecha_salida = gm.value(subject=restriccio, predicate=ONTO.FechaSalida)
+                        print('BÚSQUEDA->Restriccion de fecha salida: ' + fecha_salida)
+                        restriccions_dict['fecha_salida'] = fecha_salida
 
-                    elif gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionDiasViaje:
-                        diasViaje = gm.value(subject=restriccio, predicate=ONTO.DiasViaje)
-                        print('BÚSQUEDA->Restriccion de Valoracion: ' + diasViaje)
-                        restriccions_dict['diasViaje'] = diasViaje
-
-                gr = buscar_hoteles(**restriccions_dict)
+                gr = buscar_vuelos(**restriccions_dict)
 
     return gr.serialize(format='xml'), 200
 
-def buscar_hoteles(ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sys.float_info.max, ubicacion=None, diasViaje=None):
-    graph = Graph()
-    ontologyFile = open('./Data/Hoteles')
-    graph.parse(ontologyFile, format='xml')
-    first = second = 0
-    print("Funciona" + ciutat_desti)
-
-    query = """
-            prefix rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-            prefix xsd:<http://www.w3.org/2001/XMLSchema#>
-            prefix default:<http://www.owl-ontologies.com/OntologiaECSDI.owl#>
-            prefix owl:<http://www.w3.org/2002/07/owl#>
-            SELECT DISTINCT ?hotel ?nombre ?precio ?id ?ubicacion ?ciutat_desti
-            where {
-                { ?hotel rdf:type default:Hotel }.
-                ?hotel default:CiudadHotel ?ciutat_desti .
-                ?hotel default:NombreHotel ?nombre .
-                ?hotel default:PrecioHotel ?precio .
-                ?hotel default:UbicacionHotel ?ubicacion .
-                ?hotel default:Identificador ?id . 
-                FILTER("""
-
-    if ciutat_desti is not None:
-        query += """str(?ciutat_desti) = '""" + ciutat_desti + """'"""
-        first = 1
-
-    if ubicacion is not None:
-        if first == 1:
-            query += """ && """
-        query += """str(?ubicacion) = '""" + ubicacion + """'"""
-        first = 1
 
 
+def convertir_duracion_a_minutos(duracion):
+    # Eliminar los caracteres no numéricos
+    duracion = duracion.replace("PT", "").replace("H", "H ").replace("M", "M ").strip()
 
-    if first == 1 or second == 1:
-        query += """ && """
+    # Dividir la cadena en horas y minutos
+    partes = duracion.split(" ")
+    horas = 0
+    minutos = 0
 
-    print("Min: " + str(preciomin) + " Max: " + str(preciomax))
-    query += """?precio >= """ + str(preciomin) + """ &&
-                    ?precio <= """ + str(preciomax) + """  )}
-                    order by asc(UCASE(str(?nombre)))"""
+    for parte in partes:
+        if parte.endswith("H"):
+            horas = int(parte[:-1])
+        elif parte.endswith("M"):
+            minutos = int(parte[:-1])
 
-    graph_query = graph.query(query)
-    result = Graph()
-    hotel_count = 0
-    for row in graph_query:
-        nombre_hotel = row.nombre
-        print("Nombre del hotel --> " + nombre_hotel)
-        precio_hotel = row.precio
-        id_hotel = row.id
-        subject_hotel = row.hotel
-        ciudad_destino = row.ciutat_desti
-        ubicacion_hotel = row.ubicacion
-        hotel_count += 1
-        result.add((subject_hotel, RDF.type, ONTO.Hotel))
-        result.add((subject_hotel, ONTO.PrecioHotel, Literal(precio_hotel, datatype=XSD.float)))
-        result.add((subject_hotel, ONTO.Identificador, Literal(id_hotel, datatype=XSD.string)))
-        result.add((subject_hotel, ONTO.NombreHotel, Literal(nombre_hotel, datatype=XSD.string)))
-        result.add((subject_hotel, ONTO.UbicacionHotel, Literal(ubicacion_hotel, datatype=XSD.string)))
-        result.add((subject_hotel, ONTO.CiudadHotel, Literal(ciudad_destino, datatype=XSD.string)))
+    # Calcular la duración total en minutos
+    duracion_minutos = horas * 60 + minutos
 
-    print(hotel_count)
-    return result
+    return duracion_minutos
+
+def buscar_vuelos(ciutat_origen=None, ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sys.float_info.max, fecha_salida=None):
+
+        print ("orig: " + ciutat_origen)
+        print("dest: " + ciutat_desti)
+        print("precio min: " + str(preciomin))
+        print("precio max: " + str(preciomax))
+        print("Fecha salida: " + fecha_salida)
+
+        response = amadeus.shopping.flight_offers_search.get(
+            originLocationCode=ciutat_origen,
+            destinationLocationCode=ciutat_desti,
+            departureDate=fecha_salida,
+            adults=1)
+        print("FLIGHTS")
+        print("-----------------------------------")
+
+        flight_data_ordenado_por_duracion = [flight_data for flight_data in response.data
+                            if float(flight_data['price']['total']) >= preciomin and
+                            float(flight_data['price']['total']) <= preciomax]
+
+
+
+        result = Graph()
+        vuelos_count = 0
+        print(len(flight_data_ordenado_por_duracion))
+
+        for flight_data in flight_data_ordenado_por_duracion:
+            # Obtener información del precio
+            vuelos_count += 1
+            print(vuelos_count)
+            precio_vuelo = flight_data['price']['total']
+
+            # Obtener información de los itinerarios
+            itineraries = flight_data['itineraries']
+            fecha_salida = itineraries[0]['segments'][0]['departure']['at']
+            fecha_llegada = itineraries[0]['segments'][-1]['arrival']['at']
+            duracion_vuelo = convertir_duracion_a_minutos(itineraries[0]['duration'])
+            # Obtener identificador del vuelo
+            id_vuelo = flight_data['id']
+            subject_vuelo = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#Vuelo" + id_vuelo)
+
+
+            result.add((subject_vuelo, RDF.type, ONTO.Vuelo))
+            result.add((subject_vuelo, ONTO.PrecioVuelo, Literal(precio_vuelo, datatype=XSD.float)))
+            result.add((subject_vuelo, ONTO.Identificador, Literal(id_vuelo, datatype=XSD.string)))
+            result.add((subject_vuelo, ONTO.FechaSalida, Literal(fecha_salida, datatype=XSD.string)))
+            result.add((subject_vuelo, ONTO.FechaLlegada, Literal(fecha_llegada, datatype=XSD.string)))
+            result.add((subject_vuelo, ONTO.DuracionVuelo, Literal(duracion_vuelo, datatype=XSD.float)))
+
+        return result
+
 @app.route("/Stop")
 def stop():
     """
@@ -251,7 +267,7 @@ def agentbehavior1(cola):
     :return:
     """
 
-
+    #buscar_vuelos("BCN", "LON", 100, 150, "2023-05-28")
     pass
 
 
