@@ -27,58 +27,53 @@ acceso a Amadeis (AMADEUS_KEY, AMADEUS_SECRET)
 :Date:  02/02/2021
 """
 from amadeus import Client, ResponseError
-from AgentUtil.APIKeys import AMADEUS_KEY, AMADEUS_SECRET
+#from AgentUtil.APIKeys import AMADEUS_KEY, AMADEUS_SECRET
 from pprint import PrettyPrinter
 
 __author__ = 'bejar'
 
-amadeus = Client(
-    client_id=AMADEUS_KEY,
-    client_secret=AMADEUS_SECRET
-)
-ppr = PrettyPrinter(indent=4)
+def convertir_duracion_a_minutos(duracion):
+    # Eliminar los caracteres no numéricos
+    duracion = duracion.replace("PT", "").replace("H", "H ").replace("M", "M ").strip()
 
-# Flights query
-try:
-    response = amadeus.shopping.flight_offers_search.get(
-        originLocationCode='BCN',
-        destinationLocationCode='PAR',
-        departureDate='2021-06-01',
-        adults=1)
-    print("FLIGHTS")
-    print("-----------------------------------")
-    ppr.pprint(response.data)
-except ResponseError as error:
-    print(error)
+    # Dividir la cadena en horas y minutos
+    partes = duracion.split(" ")
+    horas = 0
+    minutos = 0
 
-# Hotels query
-try:
-    response = amadeus.shopping.hotel_offers.get(cityCode='LON')
-    print("-----------------------------------")
-    print("HOTELS")
-    print("-----------------------------------")
-    for h in response.data:
-        ppr.pprint(h['hotel']['name'])
-    print('---')
-    # Siguientes paginas de resultados
-    response = amadeus.next(response)
-    for h in response.data:
-        ppr.pprint(h['hotel']['name'])
-    print('---')
-    response = amadeus.next(response)
-    for h in response.data:
-        ppr.pprint(h['hotel']['name'])
+    for parte in partes:
+        if parte.endswith("H"):
+            horas = int(parte[:-1])
+        elif parte.endswith("M"):
+            minutos = int(parte[:-1])
 
-except ResponseError as error:
-    print(error)
+    # Calcular la duración total en minutos
+    duracion_minutos = horas * 60 + minutos
+
+    return duracion_minutos
 
 
-# Activities query
-try:
-    response = amadeus.shopping.activities.by_square.get(north=41.397158, west=2.160873,
-                                          south=41.394582, east=2.177181)
-    print("ACTIVITIES")
-    print("-----------------------------------")
-    ppr.pprint(response.data)
-except ResponseError as error:
-    print(error)
+if __name__ == '__main__':
+    amadeus = Client(
+        client_id="UeGdPNT4DX36I6qWE4YXMgFS6B5kpMiJ",
+        client_secret="jR7XMBRxKFvT2FIS"
+    )
+    ppr = PrettyPrinter(indent=4)
+
+    # Flights query
+    # Activities query
+    try:
+        response = amadeus.shopping.activities.by_square.get(north=41.412552, west=2.22134938,
+                                                             south=41.387958, east=2.110627)
+        print("ACTIVITIES")
+        print("-----------------------------------")
+
+        ppr.pprint(response.data)
+
+    except ResponseError as error:
+        print(error)
+
+
+
+
+

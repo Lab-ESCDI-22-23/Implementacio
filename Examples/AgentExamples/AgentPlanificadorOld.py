@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+ # -*- coding: utf-8 -*-
 """
 filename: SimplePersonalAgent
 
@@ -210,12 +210,14 @@ def agentbehavior1():
     :return:
     """
 
+
     # Buscamos en el directorio
     # un agente de hoteles
     gr = directory_search_message(DSO.HotelsAgent)
 
     # Obtenemos la direccion del agente de la respuesta
     # No hacemos ninguna comprobacion sobre si es un mensaje valido
+
     msg = gr.value(predicate=RDF.type, object=ACL.FipaAclMessage)
     content = gr.value(subject=msg, predicate=ACL.content)
     ragn_addr = gr.value(subject=content, predicate=DSO.Address)
@@ -223,7 +225,44 @@ def agentbehavior1():
 
     # Ahora mandamos un objeto de tipo request mandando una accion de tipo Search
     # que esta en una supuesta ontologia de acciones de agentes
-    infoagent_search_message(ragn_addr, ragn_uri)
+    logger.info('vamos alla')
+    logger.info(infoagent_search_message(ragn_addr, ragn_uri).serialize(format='turtle'))
+
+
+"""
+#REBEM INFO PETICIÓ DEL COMUNICADOR
+    #SERÀ UN GRAF, HEM D'OBTENIR ELS PARÀMETRES
+
+    dataInici = "1/1/2024"
+    dataFi = "10/1/2024"
+    pressupost = 1000
+    origen = "Barcelona"
+    desti = "Paris"
+
+    ###increments:
+    cultural = 0.33
+    ludica = 0.33
+    festiva = 0.34
+    zonaAllotjament = "centric"
+
+
+#FEM SOLICITUDS ALS AgentCercadorVols,AgentCercadorHotels,AgentCercadorActivitats
+    #Construim Grafs de petició
+        # Tipus del content ha de ser accion (CercaVols), com ho faig? gmess.add((--, RDF.type, ONTO.action.CercaVols))
+
+    #Enviem missatges
+    #Rebem resposta
+    #Obtenim dades dels grafs
+
+#CONSTRUIM PLANIFICACIÓ
+    gplan = Graph()
+    #construir graf amb les dades obtingudes
+
+#IMPRIMIM PLANIFICACIÓ (després s'haurà d'enviar al comunicador)
+    logger.info(gplan.serialize(format='turtle'))
+
+"""
+
 
 if __name__ == '__main__':
     # Ponemos en marcha los behaviors

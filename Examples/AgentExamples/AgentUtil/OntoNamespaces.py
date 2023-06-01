@@ -29,7 +29,13 @@ GR = Namespace('http://purl.org/goodrelations/v1#')
 # DBPedia
 DBP = Namespace('http://dbpedia.org/ontology/')
 
+# ECSDI Ontology Namespace
+ONTO = Namespace('http://www.owl-ontologies.com/OntologiaECSDI.owl#')
+
+
 # Basic Geo (WGS84 lat/long) Vocabulary
 GEO = Namespace('http://www.w3.org/2003/01/geo/wgs84_pos#')
+
+
 
 
