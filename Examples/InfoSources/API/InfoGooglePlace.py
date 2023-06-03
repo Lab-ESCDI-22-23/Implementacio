@@ -8,10 +8,7 @@ if __name__ == '__main__':
     import requests
 
     urls = [
-        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=discoteca%20en%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA",
-        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=actividades%20ocio%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA",
-        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=parque%20atracciones%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA",
-        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=zoo%20cine%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA"
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=museos%20en%20"+ "Paris" +"&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA",
     ]
 
     results = []

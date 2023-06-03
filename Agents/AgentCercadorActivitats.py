@@ -100,6 +100,8 @@ agn = Namespace("http://www.agentes.org#")
 # Contador de mensajes
 mss_cnt = 0
 
+CACHE_FILE = "./Data/cache_activitats"
+
 # Datos del Agente
 AgenteActividades = Agent('AgenteActividades',
                        agn.AgentSimple,
@@ -206,25 +208,25 @@ def comunicacion():
     return gr.serialize(format='xml'), 200
 
 
-def buscar_actividades_festivas():
+def buscar_actividades_festivas(ciudad="Barcelona"):
 
     urls = [
-        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=discoteca%20en%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA",
-        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=actividades%20ocio%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA",
-        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=parque%20atracciones%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA",
-        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=zoo%20cine%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA"
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=discoteca%20en%20" + ciudad + "&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA", #Nit
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=actividades%20ocio%20" + ciudad + "&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA", #Mati-Tarda
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=parque%20atracciones%20zoo%20" + ciudad + "&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA", #Mati-Tarda
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=bar%20cine%20" + ciudad + "&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA" #Tarda-Nit
     ]
 
     results = []
-
+    types = ["Nocturna", "Mati-Tarda", "Mati-Tarda", "Nocturna-Tarda"]
     for i, url in enumerate(urls):
         response = requests.get(url)
         data = response.json()
 
         for item in data.get("results", []):
             name = item.get("name")
-            price_level = item.get("price_level", "None")
-            result = {"name": name, "price_level": price_level, "type": f"Consulta {i + 1}"}
+            price_level = item.get("price_level", "-1")
+            result = {"name": name, "price_level": price_level, "type": types[i]}
             results.append(result)
 
 
@@ -232,16 +234,20 @@ def buscar_actividades_festivas():
     return results
 
 
-def buscar_actividades_culturales():
+def buscar_actividades_culturales(ciudad="Barcelona"):
 
     urls = [
-        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=discoteca%20en%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA",
-        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=actividades%20ocio%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA",
-        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=parque%20atracciones%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA",
-        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=zoo%20cine%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA"
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=teatre%20culturals%20" + ciudad + "&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA", #Nit
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=restaurantes%20" + ciudad + "&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA",  #tarda-nit
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=museos%20en%20" + ciudad + "&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA", #tarda-mati
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=iglesia%20catedrales%20importantes%20" + ciudad + "&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA", #tarda-mati
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=monumentos%20importantes%20" + ciudad + "&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA", #tarda-mati
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=sitios%20importantes%20" + ciudad + "&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA" #tarda-mati
     ]
 
     results = []
+
+    types = ["Nocturna", "Nocturna-Tarda", "Mati-Tarda", "Mati-Tarda", "Mati-Tarda", "Mati-Tarda"]
 
     for i, url in enumerate(urls):
         response = requests.get(url)
@@ -249,16 +255,37 @@ def buscar_actividades_culturales():
 
         for item in data.get("results", []):
             name = item.get("name")
-            price_level = item.get("price_level", "None")
-            result = {"name": name, "price_level": price_level, "type": f"Consulta {i + 1}"}
+            price_level = item.get("price_level", "-1")
+            result = {"name": name, "price_level": price_level, "type": types[i]}
             results.append(result)
 
     print("FIN LLAMADA API - TODO OK")
     return results
 
+def guardar_cache(cache, ciudad_destino = ""):
+    with open(CACHE_FILE, "w") as file:
+        file.truncate(0)  # Borrar contenido inicial del archivo
+        file.write(ciudad_destino + "\n")
+        for result in cache:
+            line = f"{result['name']},{result['price_level']},{result['type']}\n"
+            file.write(line)
 
+def cache_valida(ciudad_destino = ""):
+    with open(CACHE_FILE, "r") as file:
+        primera_linea = file.readline().strip()
+    return primera_linea == ciudad_destino
 
-def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, proporcion_ludico_festiva=0.5, proporcion_cultural=0.5):
+def leer_cache():
+    with open(CACHE_FILE, "r") as file:
+        contenido = file.readlines()[1:]
+    resultados = []
+    for linea in contenido:
+        nombre, precio, tipo = linea.strip().split(",")
+        resultado = {"name": nombre, "price_level": precio, "type": tipo}
+        resultados.append(resultado)
+    return resultados
+
+def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, proporcion_ludico_festiva=0.5, proporcion_cultural=0.5, ciudad_destino="Barcelona"):
 
         print ("carga: " + carga_actividades)
         print("nivel precio: " + str(nivel_precio))
@@ -266,11 +293,18 @@ def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, pro
         print("Proporcion ludido y festiva: " + str(proporcion_ludico_festiva))
         print("Proporcion cultural: " + str(proporcion_cultural))
 
+        if (cache_valida(ciudad_destino)):
+            print("ACCES A CACHE")
+            actividades_totales = leer_cache()
 
-        actividades_ludico_festivas = buscar_actividades_festivas()
+        else:
+            print("ACCES A API")
+            actividades_ludico_festivas = buscar_actividades_festivas(ciudad_destino)
+            actividades_culturales = buscar_actividades_culturales(ciudad_destino)
+            actividades_totales = actividades_ludico_festivas + actividades_culturales
+            guardar_cache(actividades_totales, ciudad_destino)
 
-        actividades_filtradas = [actividad for actividad in actividades_ludico_festivas if actividad["price_level"] == "None" or (isinstance(actividad["price_level"], int) and actividad["price_level"] <= nivel_precio)]
-
+        actividades_filtradas = [actividad for actividad in actividades_totales if int(actividad["price_level"]) <= nivel_precio]
 
         result = Graph()
         actividades_count = 0
@@ -278,11 +312,12 @@ def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, pro
         for consulta in actividades_filtradas:
             name = consulta["name"]
             price_level = consulta["price_level"]
-            #print("Nombre: " + name)
-            #print("Price level: " + str(price_level))
-            #print("--------------")
+            print("Nombre: " + name)
+            print("Price level: " + str(price_level))
             type = consulta["type"]
             print("Este es el tipo: " + type)
+            print("--------------")
+
             actividades_count += 1
             subject_actividades = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#Actividad" + str(actividades_count))
             result.add((subject_actividades, RDF.type, ONTO.Actividad))
@@ -319,7 +354,7 @@ def agentbehavior1(cola):
     :return:
     """
 
-    #buscar_actividades("Alta", 2, 5, 1, 0)
+    buscar_actividades("Alta", 3, 5, 0.5, 0.5, "Madrid")
     pass
 
 

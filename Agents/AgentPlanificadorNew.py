@@ -583,17 +583,10 @@ def agentbehavior1(cola):
 
     # PARALELISME
     logger.info('Creating')
-    p1 = Process(target=buscar_hoteles, args=("Barcelona", 10, 120, "Centro"))
-    p2 = Process(target=buscar_vuelos, args=("BCN", "LON", 50, 100, "2023-06-30"))
-    p3 = Process(target=buscar_actividades, args=("Alta", 3, 5, 1, 1))
-    logger.info('Starting')
-    p1.start()
-    p2.start()
-    p3.start()
-    logger.info('Joining')
-    p1.join()
-    p2.join()
-    p3.join()
+    buscar_hoteles("Barcelona", 10, 120, "Centro")
+    buscar_vuelos("BCN", "LON", 50, 100, "2023-06-30")
+    buscar_actividades("Alta", 3, 5, 1, 1)
+
     logger.info('Done')
 
 

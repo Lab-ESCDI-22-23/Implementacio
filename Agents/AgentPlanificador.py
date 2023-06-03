@@ -227,6 +227,7 @@ def agentbehavior1():
     # que esta en una supuesta ontologia de acciones de agentes
     logger.info('vamos alla')
     logger.info(infoagent_search_message(ragn_addr, ragn_uri).serialize(format='turtle'))
+    busc
 
 
 """
