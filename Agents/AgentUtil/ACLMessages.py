@@ -12,6 +12,8 @@ __author__ = 'javier'
 
 from rdflib import Graph, URIRef
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 from rdflib.namespace import RDF, OWL
 from AgentUtil.ACL import ACL
 
@@ -52,8 +54,17 @@ def send_message(gmess, address):
     un grafo RDF
     """
     msg = gmess.serialize(format='xml')
-    r = requests.get(address, params={'content': msg})
-
+    
+    '''
+    session = requests.Session()
+    retry = Retry(connect=3, backoff_factor=0.5)
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount(address, adapter)
+    session.mount('https://', adapter)
+'''
+    
+    r = requests.get(address, params={'content': msg}, timeout=30)
+    
     # Procesa la respuesta y la retorna como resultado como grafo
     gr = Graph()
     gr.parse(data=r.text, format='xml')

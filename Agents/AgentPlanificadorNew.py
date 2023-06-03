@@ -33,7 +33,7 @@ from pyparsing import Literal
 from AgentUtil.FlaskServer import shutdown_server
 from AgentUtil.Agent import Agent
 from AgentUtil.OntoNamespaces import ONTO
-from Implementacio.Examples.AgentExamples.AgentUtil.ACLMessages import *
+from AgentUtil.ACLMessages import *
 
 
 from multiprocessing import Process
@@ -580,7 +580,7 @@ def agentbehavior1(cola):
     gr = register_message()
     logger.info('Register Done')
 
-
+    '''
     # PARALELISME
     logger.info('Creating')
     p1 = Process(target=buscar_hoteles, args=("Barcelona", 10, 120, "Centro"))
@@ -595,6 +595,7 @@ def agentbehavior1(cola):
     p2.join()
     p3.join()
     logger.info('Done')
+    '''
 
 
     """

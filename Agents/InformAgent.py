@@ -14,7 +14,7 @@ import logging
 import argparse
 
 from flask import Flask, render_template, request
-from rdflib import Graph, Namespace, Literal
+from rdflib import Graph, Namespace, Literal, XSD, URIRef
 from rdflib.namespace import FOAF, RDF
 
 from AgentUtil.ACL import ACL
@@ -25,6 +25,8 @@ from AgentUtil.Logging import config_logger
 from AgentUtil.DSO import DSO
 from AgentUtil.Util import gethostname
 import socket
+
+from AgentUtil.PAO import PAO
 
 
 if True:
@@ -57,6 +59,7 @@ if True:
         hostaddr = hostname = socket.gethostname()
 
     print('DS Hostname =', hostaddr)
+    print('DS Hostname =', port)
 
     if args.dport is None:
         dport = 9000
@@ -80,23 +83,18 @@ if True:
     # Contador de mensajes
     mss_cnt = 0
 
-    # Datos del Agente
-    InformAgent = Agent('InformAgent',
-                    agn.InformAgent,
-                    'http://%s:%d/comm' % (hostaddr, port),
-                    'http://%s:%d/Stop' % (hostaddr, port))
+# Datos del Agente
+InformAgent = Agent('InformAgent',
+                agn.InformAgent,
+                'http://%s:%d/comm' % (hostaddr, port),
+                'http://%s:%d/Stop' % (hostaddr, port))
 
-    # Directory agent address
-    DirectoryAgent = Agent('DirectoryAgent',
-                        agn.Directory,
-                        'http://%s:%d/Register' % (dhostname, dport),
-                        'http://%s:%d/Stop' % (dhostname, dport))
+# Directory agent address
+DirectoryAgent = Agent('DirectoryAgent',
+                    agn.Directory,
+                    'http://%s:%d/Register' % (dhostname, dport),
+                    'http://%s:%d/Stop' % (dhostname, dport))
     
-    # Directory agent address
-    PlanerAgent = Agent('PlanerAgent',
-                        agn.Directory,
-                        'http://%s:%d/Register' % (dhostname, dport),
-                        'http://%s:%d/Stop' % (dhostname, dport))
 
 # Global dsgraph triplestore
 dsgraph = Graph()
@@ -145,25 +143,6 @@ def register_message():
     mss_cnt += 1
 
     return gr
-
-def trip_request(user, tripStart, tripEnd, origin, destination, budget, playful, cultural, festive):
-    gmess = Graph()
-
-    # Build the register message
-    gmess.bind('foaf', FOAF)
-    gmess.bind('dso', DSO)
-    
-    logger.info('Trip request made:')
-    logger.info(user)
-    logger.info(tripStart)
-    logger.info(tripEnd)
-    logger.info(origin)
-    logger.info(destination)
-    logger.info(budget)
-    logger.info(playful)
-    logger.info(cultural)
-    logger.info(festive)
-    
 
 @app.route("/iface", methods=['GET', 'POST'])
 def browser_iface():
@@ -378,6 +357,116 @@ def comunicacion():
     return gr.serialize(format='xml')
 
 
+def directory_search_message(type):
+    """
+    Search in the directory agent the addres of one type of agent
+
+    :param type: Type of the agent to search
+    :return:
+    """
+    global mss_cnt
+    print('Searching in the Directory agent an agent of type: ', type)
+    #logger.info('Searching in the Directory agent an agent of type: ', type)
+
+    messageGraph = Graph()
+
+    messageGraph.bind('foaf', FOAF)
+    messageGraph.bind('dso', DSO)
+    actionObject = agn[InformAgent.name + '-search']
+    messageGraph.add((actionObject, RDF.type, DSO.Search))
+    messageGraph.add((actionObject, DSO.AgentType, type))
+
+    msg = build_message(messageGraph, perf=ACL.request,
+                        sender=InformAgent.uri,
+                        receiver=DirectoryAgent.uri,
+                        content=actionObject,
+                        msgcnt=mss_cnt)
+    
+    gr = send_message(msg, DirectoryAgent.address)
+    mss_cnt += 1
+    logger.info('Search response recived')
+
+    return gr
+
+def trip_request(user, tripStart, tripEnd, origin, destination, budget, playful, cultural, festive):
+    
+    global mss_cnt
+    
+    # Search in the directory for a Planifier agent
+    typeResponse = directory_search_message(agn.AgentePlanficador)
+    
+    responseGraph = typeResponse.value(predicate=RDF.type, object=ACL.FipaAclMessage)
+    content = typeResponse.value(subject=responseGraph, predicate=ACL.content)
+    planifierAddres = typeResponse.value(subject=content, predicate=DSO.Address)
+    planifierUri = typeResponse.value(subject=content, predicate=DSO.Uri)
+
+
+    print("Planifier addres: ", planifierAddres)
+    print("Planifier uri: ", planifierUri)
+    messageGraph = Graph()
+    
+    messageGraph.bind('foaf', FOAF)
+    messageGraph.bind('pao', PAO)
+    
+    #Build the person 
+    person = agn.user
+    messageGraph.add((person, RDF.type, FOAF.Person))
+    messageGraph.add((person, FOAF.name, Literal(user)))
+    
+    tripRequestObject = agn[InformAgent.name + '-trip-request'] #Object of the trip request
+    
+    messageGraph.add((tripRequestObject, RDF.type, PAO.TripRequest)) 
+    
+    messageGraph.add((tripRequestObject, PAO.By, person)) #Add the user making the request
+    
+    #Add the dates
+    messageGraph.add((tripRequestObject, PAO.Start, Literal(tripStart)))
+    messageGraph.add((tripRequestObject, PAO.End, Literal(tripEnd)))
+    
+    #Add the activities types
+    messageGraph.add((tripRequestObject, PAO.Playful, Literal(playful)))
+    messageGraph.add((tripRequestObject, PAO.Festive, Literal(festive)))
+    messageGraph.add((tripRequestObject, PAO.Cultural, Literal(cultural)))
+    
+    #Create the city and add them
+    ori = agn.origin
+    dest = agn.destination
+    messageGraph.add((ori, RDF.type, PAO.City))
+    messageGraph.add((ori, PAO.Name, Literal(origin)))
+    messageGraph.add((dest, RDF.type, PAO.City))
+    messageGraph.add((dest, PAO.Name, Literal(destination)))
+    
+    messageGraph.add((tripRequestObject, PAO.From, ori))
+    messageGraph.add((tripRequestObject, PAO.To, dest))
+    
+    
+    message = build_message(messageGraph, perf=ACL.request,
+                        sender=InformAgent.uri,
+                        receiver=planifierUri,
+                        content=tripRequestObject,
+                        msgcnt=mss_cnt)
+    
+    logger.info("send the message")
+    #responseGraph = send_message(message, planifierAddres)
+    mss_cnt += 1
+    
+    
+    
+    
+    
+    
+    logger.info('Trip request made:')
+    logger.info(user)
+    logger.info(tripStart)
+    logger.info(tripEnd)
+    logger.info(origin)
+    logger.info(destination)
+    logger.info(budget)
+    logger.info(playful)
+    logger.info(cultural)
+    logger.info(festive)
+    
+    
 # --------------- Functions to keep the server runing ---------------
 @app.route("/stop")
 def stop():
@@ -405,7 +494,7 @@ def startAndWait(endQueue):
     :return:
     """
     # Register the Agent
-    regResponseGraph = register_message()
+    #regResponseGraph = register_message()
 
     # Wait until the 0 arrives to End
     end = False
@@ -421,6 +510,7 @@ def startAndWait(endQueue):
 # Starts the agent
 if __name__ == '__main__':
     # Start the first behavior to register and wait
+    regResponseGraph = register_message()
     init = Process(target=startAndWait, args=(endQueue,))
     init.start()
 
