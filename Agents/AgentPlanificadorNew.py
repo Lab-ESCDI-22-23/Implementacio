@@ -9,51 +9,28 @@ Agente que se registra como agente de hoteles y espera peticiones
 @author: agracia
 """
 
-from multiprocessing import Process, Queue
-import logging
 import argparse
-
-from flask import Flask, request
-from rdflib import Graph, Namespace, Literal
-from rdflib.namespace import FOAF, RDF
-
-from AgentUtil.ACL import ACL
-from AgentUtil.FlaskServer import shutdown_server
-from AgentUtil.ACLMessages import build_message, send_message, get_message_properties
-from AgentUtil.Agent import Agent
-from AgentUtil.Logging import config_logger
-from AgentUtil.DSO import DSO
-from AgentUtil.Util import gethostname
-import sys
-from multiprocessing import Process, Queue
+import logging
 import socket
-from flask import Flask, request
-from rdflib import Namespace, Graph
-from pyparsing import Literal
-from AgentUtil.FlaskServer import shutdown_server
-from AgentUtil.Agent import Agent
-from AgentUtil.OntoNamespaces import ONTO
-from AgentUtil.ACLMessages import *
-
-
+import sys
 from multiprocessing import Process
-import logging
-import argparse
+from multiprocessing import Queue
 
-from flask import Flask, render_template, request
-from rdflib import Graph, Namespace
+from flask import Flask, request
+from pyparsing import Literal
+from rdflib import Graph
+from rdflib import Namespace, Literal, URIRef
 from rdflib.namespace import FOAF, RDF
-from rdflib import XSD, Namespace, Literal, URIRef
+
 from AgentUtil.ACL import ACL
-from AgentUtil.DSO import DSO
-from AgentUtil.FlaskServer import shutdown_server
+from AgentUtil.ACLMessages import *
 from AgentUtil.ACLMessages import build_message, send_message
 from AgentUtil.Agent import Agent
+from AgentUtil.DSO import DSO
+from AgentUtil.FlaskServer import shutdown_server
 from AgentUtil.Logging import config_logger
+from AgentUtil.OntoNamespaces import ONTO
 from AgentUtil.Util import gethostname
-import socket
-
-
 
 __author__ = 'javier'
 
@@ -63,7 +40,7 @@ if True:
     parser.add_argument('--open', help="Define si el servidor esta abierto al exterior o no", action='store_true',
                         default=False)
     parser.add_argument('--verbose', help="Genera un log de la comunicacion del servidor web", action='store_true',
-                            default=False)
+                        default=False)
     parser.add_argument('--port', type=int, help="Puerto de comunicacion del agente")
     parser.add_argument('--dhost', help="Host del agente de directorio")
     parser.add_argument('--dport', type=int, help="Puerto de comunicacion del agente de directorio")
@@ -88,7 +65,6 @@ if True:
 
     print('DS Hostname =', hostaddr)
 
-
     if args.dport is None:
         dport = 9000
     else:
@@ -110,16 +86,19 @@ agn = Namespace("http://www.agentes.org#")
 
 # Contador de mensajes
 mss_cnt = 0
+
+
 def get_count():
     global mss_cnt
     mss_cnt += 1
     return mss_cnt
 
+
 # Datos del Agente
 AgentePlanficador = Agent('AgentePlanficador',
-                  agn.AgentePlanficador,
-                  'http://%s:%d/comm' % (hostname, port),
-                  'http://%s:%d/Stop' % (hostname, port))
+                          agn.AgentePlanficador,
+                          'http://%s:%d/comm' % (hostname, port),
+                          'http://%s:%d/Stop' % (hostname, port))
 
 # Directory agent address
 DirectoryAgent = Agent('DirectoryAgent',
@@ -127,21 +106,20 @@ DirectoryAgent = Agent('DirectoryAgent',
                        'http://%s:9000/Register' % hostname,
                        'http://%s:9000/Stop' % hostname)
 
-
 AgenteHotel = Agent('AgenteHotel',
-                            agn.AgenteHotel,
-                            'http://%s:9010/comm' % hostname,
-                            'http://%s:9010/Stop' % hostname)
+                    agn.AgenteHotel,
+                    'http://%s:9010/comm' % hostname,
+                    'http://%s:9010/Stop' % hostname)
 
 AgenteVuelos = Agent('AgenteVuelos',
-                            agn.AgenteVuelos,
-                            'http://%s:9012/comm' % hostname,
-                            'http://%s:9012/Stop' % hostname)
+                     agn.AgenteVuelos,
+                     'http://%s:9012/comm' % hostname,
+                     'http://%s:9012/Stop' % hostname)
 
 AgenteActividades = Agent('AgenteActividades',
-                            agn.AgenteVuelos,
-                            'http://%s:9013/comm' % hostname,
-                            'http://%s:9013/Stop' % hostname)
+                          agn.AgenteVuelos,
+                          'http://%s:9013/comm' % hostname,
+                          'http://%s:9013/Stop' % hostname)
 
 # Global dsgraph triplestore
 dsgraph = Graph()
@@ -189,7 +167,7 @@ def register_message():
     return gr
 
 
-#@app.route("/iface", methods=['GET', 'POST'])
+# @app.route("/iface", methods=['GET', 'POST'])
 def browser_iface():
     """
     Permite la comunicacion con el agente via un navegador
@@ -255,7 +233,7 @@ def comunicacion():
             if accion == ONTO.PeticioViatge:
                 print("Peticio de viatge")
 
-                #OBTENIR PARAMETRES PETICIO
+                # OBTENIR PARAMETRES PETICIO
                 restriccions = gm.objects(content, ONTO.RestringidaPor)
                 restriccions_dict = {}
                 # Per totes les restriccions que tenim en la cerca d'hotels
@@ -313,7 +291,7 @@ def comunicacion():
                     else:
                     """
 
-                gr = None #CONSTRUIR GRAF DE RESPOSTA
+                gr = None  # CONSTRUIR GRAF DE RESPOSTA
                 """
                 -Vols (2)
                 -Hotel (1)
@@ -329,11 +307,10 @@ def comunicacion():
                                    sender=AgentePlanficador.uri,
                                    msgcnt=get_count())
 
-
     return gr.serialize(format='xml'), 200
 
 
-def buscar_hoteles(ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sys.float_info.max, ubicacion=None):
+def buscar_hoteles(queue, ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sys.float_info.max, ubicacion=None):
     logger.info('Inici Buscar Hotels')
 
     global mss_cnt
@@ -366,7 +343,8 @@ def buscar_hoteles(ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sy
         g.add((ubiRestriction, ONTO.UbicacionHotel, Literal(ubicacion)))
         g.add((action, ONTO.RestringidaPor, URIRef(ubiRestriction)))
     print("Buscar hoteles v5")
-    msg = build_message(gmess=g, perf=ACL.request, sender= AgentePlanficador.uri, receiver=AgenteHotel.uri, content=action, msgcnt= mss_cnt)
+    msg = build_message(gmess=g, perf=ACL.request, sender=AgentePlanficador.uri, receiver=AgenteHotel.uri,
+                        content=action, msgcnt=mss_cnt)
     print("Buscar hoteles v6")
     mss_cnt += 1
     logger.info('Enviar Buscar Hotels')
@@ -398,8 +376,6 @@ def buscar_hoteles(ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sy
             if p == ONTO.UbicacionHotel:
                 hotel["location"] = o
 
-
-
     # Print de hotels_list
     for hotel in hotels_list:
         print("--- Hotel ---")
@@ -412,11 +388,12 @@ def buscar_hoteles(ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sy
         print("---------------------")
 
     logger.info('Fi Buscar hotels')
+    queue.put(hotels_list)
     return hotels_list
 
 
-
-def buscar_vuelos(ciutat_origen=None, ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sys.float_info.max, fecha_salida=None):
+def buscar_vuelos(queue, ciutat_origen=None, ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sys.float_info.max,
+                  fecha_salida=None):
     logger.info('Inici Buscar Vols')
 
     global mss_cnt
@@ -458,7 +435,8 @@ def buscar_vuelos(ciutat_origen=None, ciutat_desti=None, preciomin=sys.float_inf
         g.add((fechaRestriction, ONTO.FechaSalida, Literal(fecha_salida)))
         g.add((action, ONTO.RestringidaPor, URIRef(fechaRestriction)))
     print("Buscar Vuelos v5")
-    msg = build_message(gmess=g, perf=ACL.request, sender= AgentePlanficador.uri, receiver=AgenteVuelos.uri, content=action, msgcnt= mss_cnt)
+    msg = build_message(gmess=g, perf=ACL.request, sender=AgentePlanficador.uri, receiver=AgenteVuelos.uri,
+                        content=action, msgcnt=mss_cnt)
     print("Buscar Vuelos v6")
     mss_cnt += 1
     logger.info('Enviar Buscar Vols')
@@ -501,10 +479,12 @@ def buscar_vuelos(ciutat_origen=None, ciutat_desti=None, preciomin=sys.float_inf
         print("---------------------")
 
     logger.info('Fi Buscar Vols')
+    queue.put(flights_list)
     return flights_list
 
 
-def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, proporcion_ludico_festiva=0.5, proporcion_cultural=0.5):
+def buscar_actividades(queue, carga_actividades=None, nivel_precio=2, dias_viaje=0, proporcion_ludico_festiva=0.5,
+                       proporcion_cultural=0.5):
     logger.info('Inici Buscar Activitats')
 
     global mss_cnt
@@ -547,9 +527,9 @@ def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, pro
         g.add((propCultRestriction, ONTO.ProporcionCultural, Literal(proporcion_cultural)))
         g.add((action, ONTO.RestringidaPor, URIRef(propCultRestriction)))
 
-
     print("Buscar Actividades v5")
-    msg = build_message(gmess=g, perf=ACL.request, sender= AgentePlanficador.uri, receiver=AgenteActividades.uri, content=action, msgcnt= mss_cnt)
+    msg = build_message(gmess=g, perf=ACL.request, sender=AgentePlanficador.uri, receiver=AgenteActividades.uri,
+                        content=action, msgcnt=mss_cnt)
     print("Buscar Actividades v6")
     mss_cnt += 1
     logger.info('Enviar Buscar Activitats')
@@ -561,12 +541,14 @@ def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, pro
     actividades_list = []
     subjects_position = {}
     pos = 0
+    breaker = 0
 
     for s, p, o in gproducts:
         if s not in subjects_position:
             subjects_position[s] = pos
             pos += 1
             actividades_list.append({})
+            breaker += 1
         if s in subjects_position:
             actividad = actividades_list[subjects_position[s]]
             if p == RDF.type:
@@ -577,20 +559,22 @@ def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, pro
                 actividad['nombre_actividad'] = o
             if p == ONTO.NivelPrecio:
                 actividad['nivel_precio'] = o
+        if breaker > 30:
+            break
 
     # Imprimir flights_list
     for actividad in actividades_list:
         print("--- Actividad ---")
-        #print("ID:", actividad.get('id'))
+        # print("ID:", actividad.get('id'))
         print("Fecha llegada:", actividad.get('nombre_actividad'))
         print("Fecha Salida:", actividad.get('nivel_precio'))
 
         print("---------------------")
 
+
     logger.info('Fi Buscar Acivitats')
+    queue.put(actividades_list)
     return actividades_list
-
-
 
 
 def tidyup():
@@ -613,12 +597,15 @@ def agentbehavior1(cola):
     gr = register_message()
     logger.info('Register Done')
 
-
     # PARALELISME
+    q1 = Queue()
+    q2 = Queue()
+    q3 = Queue()
+
     logger.info('Creating')
-    p1 = Process(target=buscar_hoteles, args=("Barcelona", 10, 120, "Centro"))
-    p2 = Process(target=buscar_vuelos, args=("BCN", "LON", 50, 100, "2023-06-30"))
-    p3 = Process(target=buscar_actividades, args=("Alta", 3, 5, 1, 1))
+    p1 = Process(target=buscar_hoteles, args=(q1, "Barcelona", 10, 120, "Centro"))
+    p2 = Process(target=buscar_vuelos, args=(q2, "BCN", "LON", 50, 100, "2023-06-30"))
+    p3 = Process(target=buscar_actividades, args=(q3, "Alta", 3, 5, 1, 1))
     logger.info('Starting')
     p1.start()
     p2.start()
@@ -629,21 +616,19 @@ def agentbehavior1(cola):
     p3.join()
     logger.info('Done')
 
+    logger.info('Iniciant cues')
+
+    result1 = q1.get()
+    result2 = q2.get()
+    result3 = q3.get()
+
+    logger.info('Results:')
+    print(result1)
+    logger.info('Result 1: {}'.format(result1))
+    logger.info('Result 2: {}'.format(result2))
+    logger.info('Result 3: {}'.format(result3))
+
     logger.info('------------------------------------')
-
-
-    logger.info('Hotels')
-    hotels = buscar_hoteles("Barcelona", 10, 120, "Centro")
-    logger.info('Hotels Done')
-    logger.info('Vols anada')
-    volsAnada = buscar_vuelos("BCN", "LON", 50, 100, "2023-06-30")
-    logger.info('Vols anada Done')
-    logger.info('Vols tornada')
-    volsTornada = buscar_vuelos("LON", "BCN", 50, 100, "2023-07-05")
-    logger.info('Vols torndada Done')
-    logger.info('Activitats')
-    activitats = buscar_actividades("Alta", 3, 5, 1, 1)
-    logger.info('Activitats Done')
 
     """
     if hotels.empty():
@@ -660,8 +645,6 @@ def agentbehavior1(cola):
     """
 
     pass
-
-
 
 
 if __name__ == '__main__':
