@@ -130,8 +130,8 @@ DirectoryAgent = Agent('DirectoryAgent',
 
 AgenteHotel = Agent('AgenteHotel',
                             agn.AgenteHotel,
-                            'http://%s:9010/comm' % "clients-xsf-101.upc.es",
-                            'http://%s:9010/Stop' % "clients-xsf-101.upc.es")
+                            'http://%s:9010/comm' % hostname,
+                            'http://%s:9010/Stop' % hostname)
 
 AgenteVuelos = Agent('AgenteVuelos',
                             agn.AgenteVuelos,
@@ -398,9 +398,8 @@ def buscar_hoteles(ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sy
             if p == ONTO.UbicacionHotel:
                 hotel["location"] = o
 
-    logger.info('Fi Buscar hotels')
-    return hotels_list
-    """
+
+
     # Print de hotels_list
     for hotel in hotels_list:
         print("--- Hotel ---")
@@ -411,7 +410,9 @@ def buscar_hoteles(ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sy
         print("Ubicación:", hotel.get('location'))
 
         print("---------------------")
-    """
+
+    logger.info('Fi Buscar hotels')
+    return hotels_list
 
 
 
@@ -489,10 +490,6 @@ def buscar_vuelos(ciutat_origen=None, ciutat_desti=None, preciomin=sys.float_inf
             if p == ONTO.DuracionVuelo:
                 flight['duracion'] = o
 
-    logger.info('Fi Buscar Vols')
-
-    return flights_list
-    """
     # Imprimir flights_list
     for flight in flights_list:
         print("--- Vuelo ---")
@@ -502,7 +499,9 @@ def buscar_vuelos(ciutat_origen=None, ciutat_desti=None, preciomin=sys.float_inf
         print("Precio:", flight.get('precio'))
         print("Duracion:", flight.get('duracion'))
         print("---------------------")
-    """
+
+    logger.info('Fi Buscar Vols')
+    return flights_list
 
 
 def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, proporcion_ludico_festiva=0.5, proporcion_cultural=0.5):
@@ -579,10 +578,6 @@ def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, pro
             if p == ONTO.NivelPrecio:
                 actividad['nivel_precio'] = o
 
-    logger.info('Fi Buscar Acivitats')
-
-    return actividades_list
-    """
     # Imprimir flights_list
     for actividad in actividades_list:
         print("--- Actividad ---")
@@ -591,7 +586,9 @@ def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, pro
         print("Fecha Salida:", actividad.get('nivel_precio'))
 
         print("---------------------")
-    """
+
+    logger.info('Fi Buscar Acivitats')
+    return actividades_list
 
 
 
@@ -628,12 +625,13 @@ def agentbehavior1(cola):
     p3.start()
     logger.info('Joining')
     p1.join()
-    #p2.join()
-    #p3.join()
+    p2.join()
+    p3.join()
     logger.info('Done')
 
+    logger.info('------------------------------------')
 
-    """
+
     logger.info('Hotels')
     hotels = buscar_hoteles("Barcelona", 10, 120, "Centro")
     logger.info('Hotels Done')
@@ -647,6 +645,7 @@ def agentbehavior1(cola):
     activitats = buscar_actividades("Alta", 3, 5, 1, 1)
     logger.info('Activitats Done')
 
+    """
     if hotels.empty():
         logger.info('No hi ha hotels disponibles amb els requeriments introduits')
     elif volsAnada.empty():
