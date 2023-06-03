@@ -218,7 +218,7 @@ def buscar_actividades_festivas(ciudad="Barcelona"):
     ]
 
     results = []
-    types = ["Nocturna", "Mati-Tarda", "Mati-Tarda", "Nocturna-Tarda"]
+    time = ["Nocturna", "Mati-Tarda", "Mati-Tarda", "Nocturna-Tarda"]
     for i, url in enumerate(urls):
         response = requests.get(url)
         data = response.json()
@@ -226,7 +226,7 @@ def buscar_actividades_festivas(ciudad="Barcelona"):
         for item in data.get("results", []):
             name = item.get("name")
             price_level = item.get("price_level", "-1")
-            result = {"name": name, "price_level": price_level, "type": types[i]}
+            result = {"name": name, "price_level": price_level, "time": time[i]}
             results.append(result)
 
 
@@ -247,7 +247,7 @@ def buscar_actividades_culturales(ciudad="Barcelona"):
 
     results = []
 
-    types = ["Nocturna", "Nocturna-Tarda", "Mati-Tarda", "Mati-Tarda", "Mati-Tarda", "Mati-Tarda"]
+    time = ["Nocturna", "Nocturna-Tarda", "Mati-Tarda", "Mati-Tarda", "Mati-Tarda", "Mati-Tarda"]
 
     for i, url in enumerate(urls):
         response = requests.get(url)
@@ -256,33 +256,76 @@ def buscar_actividades_culturales(ciudad="Barcelona"):
         for item in data.get("results", []):
             name = item.get("name")
             price_level = item.get("price_level", "-1")
-            result = {"name": name, "price_level": price_level, "type": types[i]}
+            result = {"name": name, "price_level": price_level, "time": time[i]}
             results.append(result)
 
     print("FIN LLAMADA API - TODO OK")
     return results
 
 def guardar_cache(cache, ciudad_destino = ""):
-    with open(CACHE_FILE, "w") as file:
-        file.truncate(0)  # Borrar contenido inicial del archivo
-        file.write(ciudad_destino + "\n")
+        actividades_count = 0
+        g = Graph()
+
         for result in cache:
-            line = f"{result['name']},{result['price_level']},{result['type']}\n"
-            file.write(line)
+            actividades_count += 1
+            subject_actividades = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#Actividad" + str(actividades_count))
+            name = result['name']
+            price_level = result['price_level']
+            time = result['time']
+            g.add((subject_actividades, RDF.type, ONTO.Actividad))
+            g.add((subject_actividades, ONTO.NombreActividad, Literal(name, datatype=XSD.string)))
+            g.add((subject_actividades, ONTO.NivelPrecio, Literal(price_level, datatype=XSD.integer)))
+            g.add((subject_actividades, ONTO.Horario, Literal(time, datatype=XSD.string)))
+
+        subject_cabeceraMC = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#CabeceraMC")
+        g.add((subject_cabeceraMC, RDF.type, ONTO.CabeceraMC))
+        g.add((subject_cabeceraMC, ONTO.CiudadDestino, Literal(ciudad_destino, datatype=XSD.string)))
+        g.serialize(destination=CACHE_FILE, format='xml')
 
 def cache_valida(ciudad_destino = ""):
-    with open(CACHE_FILE, "r") as file:
-        primera_linea = file.readline().strip()
-    return primera_linea == ciudad_destino
+    g = Graph()
+    g.parse(CACHE_FILE, format='xml')
+
+    # Query para ver si la consulta nueva coincide con la info de la MC
+    query = """
+        prefix default:<http://www.owl-ontologies.com/OntologiaECSDI.owl#>
+        prefix rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        SELECT ?c ?ciudadDestino 
+        WHERE {
+            { ?c rdf:type default:CabeceraMC}.
+            ?c default:CiudadDestino ?ciudadDestino .
+        }
+    """
+    result = g.query(query)
+    # Iterar sobre los resultados
+    ciudad_mc = ""
+    for row in result:
+        ciudad_mc = str(row.ciudadDestino)
+    return ciudad_mc == ciudad_destino
 
 def leer_cache():
-    with open(CACHE_FILE, "r") as file:
-        contenido = file.readlines()[1:]
+    g = Graph()
+    g.parse(CACHE_FILE, format='xml')
+
+    query = """
+            prefix default:<http://www.owl-ontologies.com/OntologiaECSDI.owl#>
+            prefix rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            SELECT ?actividad ?nombre ?precio ?time 
+            WHERE {
+                { ?actividad rdf:type default:Actividad}.
+                ?actividad default:NombreActividad ?nombre .
+                ?actividad default:NivelPrecio ?precio .
+                ?actividad default:Horario ?time .
+            }
+        """
+
+    result = g.query(query)
     resultados = []
-    for linea in contenido:
-        nombre, precio, tipo = linea.strip().split(",")
-        resultado = {"name": nombre, "price_level": precio, "type": tipo}
-        resultados.append(resultado)
+    for row in result:
+        nombre = str(row.nombre)
+        precio = int(row.precio)
+        time = str(row.time)
+        resultados.append({"name": nombre, "price_level": precio, "time": time})
     return resultados
 
 def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, proporcion_ludico_festiva=0.5, proporcion_cultural=0.5, ciudad_destino="Barcelona"):
@@ -314,8 +357,8 @@ def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, pro
             price_level = consulta["price_level"]
             print("Nombre: " + name)
             print("Price level: " + str(price_level))
-            type = consulta["type"]
-            print("Este es el tipo: " + type)
+            time = consulta["time"]
+            print("Este es el tipo: " + time)
             print("--------------")
 
             actividades_count += 1
