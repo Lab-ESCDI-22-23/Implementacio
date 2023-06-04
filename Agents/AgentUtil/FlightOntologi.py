@@ -11,8 +11,7 @@ MOT =  ClosedNamespace(
         
         'PeticioVols',
         'PeticioHotles',
-        'PeticioActivitats',
-        ''
+        'PeticioActivitats',    
         
         'Producte'
         'Vol',
@@ -21,9 +20,6 @@ MOT =  ClosedNamespace(
         'Ciutat',
         'Usuari',
         
-        
-        'SolverAgent',
-        'Modify',
 
         # Object properties
         'ProductType',

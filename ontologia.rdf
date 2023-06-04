@@ -1,0 +1,329 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto/"
+     xml:base="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto/"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+    <owl:Ontology rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#by -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#by">
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripRequest"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#User"/>
+        <rdfs:comment>Represents the relation between the TripReques and the User who has made it.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#destination -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#destination">
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#ActivitiesRequest"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#FlightRequest"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#HotelRequest"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripRequest"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#City"/>
+        <owl:propertyDisjointWith rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#origin"/>
+        <rdfs:comment>Relation between one thing and the final place where it will happen.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#lodging -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#lodging">
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Hotel"/>
+        <rdfs:comment>Relation of the TripPlanification and the Hotel where the user will stay during the trip</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#origin -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#origin">
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#FlightRequest"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripRequest"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#City"/>
+        <rdfs:comment>Relation of the trip or flight and its origin</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#outboundFlight -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#outboundFlight">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Flight"/>
+        <rdfs:comment>Represents the the relation of a TripPlanification and the flght to go to the destination.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#result -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#result">
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripRequest"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#returnFlight -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#returnFlight">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Flight"/>
+        <rdfs:comment>Represents the the relation of a TripPlanification and the flght to return to the origin city</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#budget -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#budget">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#cultural -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#cultural">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Activitie"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#date -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#date">
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Activitie"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Flight"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#endDate -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#endDate">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#festive -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#festive">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#location -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#location">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Hotel"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#name -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#name">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#City"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#User"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#playful -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#playful">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Activitie"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#price -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#price">
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Activitie"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Flight"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Hotel"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#startDate -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#startDate">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Action -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Action"/>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Activitie -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Activitie"/>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#ActivitiesRequest -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#ActivitiesRequest">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Action"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#City -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#City"/>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Flight -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Flight"/>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#FlightRequest -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#FlightRequest">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Action"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Hotel -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Hotel"/>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#HotelRequest -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#HotelRequest">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Action"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification"/>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripRequest -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripRequest">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Action"/>
+        <rdfs:comment>Action that represents a trip request on the TravelServiceAgent</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#User -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#User"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // General axioms
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    <rdf:Description>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#AllDisjointClasses"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Activitie"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Flight"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Hotel"/>
+        </owl:members>
+    </rdf:Description>
+    <rdf:Description>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#AllDisjointProperties"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#by"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#destination"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#origin"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#outboundFlight"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#returnFlight"/>
+        </owl:members>
+    </rdf:Description>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 4.5.25.2023-02-15T19:15:49Z) https://github.com/owlcs/owlapi -->
+

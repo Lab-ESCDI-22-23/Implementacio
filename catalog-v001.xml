@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<catalog prefer="public" xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+    <uri id="Imports Wizard Entry" name="http://xmlns.com/foaf/0.1/" uri="file:/C:/Users/biele/Downloads/fefa1bfbff14a9efc174-389e4b003ef5cbd6901dd8ab8a692b501bc9370e/fefa1bfbff14a9efc174-389e4b003ef5cbd6901dd8ab8a692b501bc9370e/foaf.ttl"/>
+    <group id="Folder Repository, directory=, recursive=true, Auto-Update=true, version=2" prefer="public" xml:base="">
+        <uri id="Automatically generated entry, Timestamp=1685883048087" name="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto/" uri="ontologia.rdf"/>
+    </group>
+</catalog>
