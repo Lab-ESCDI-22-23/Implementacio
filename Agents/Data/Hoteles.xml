@@ -15,7 +15,7 @@
     <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">150.0</OntologiaECSDI:PrecioHotel>
     <OntologiaECSDI:UbicacionHotel>Playa</OntologiaECSDI:UbicacionHotel>
     <OntologiaECSDI:Identificador>Hotel_2</OntologiaECSDI:Identificador>
-    <OntologiaECSDI:CiudadHotel>Barcelona</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:CiudadHotel>Centro</OntologiaECSDI:CiudadHotel>
     <OntologiaECSDI:NombreHotel>Hotel Barcelona Playa</OntologiaECSDI:NombreHotel>
     <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
   </rdf:Description>

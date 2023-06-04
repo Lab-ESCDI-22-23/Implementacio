@@ -47,7 +47,7 @@ import socket
 
 
 FUSEKI_ENDPOINT = 'http://localhost:3030/MC_activitats'
-MC_PRESENCE = ""
+
 CACHE_FILE = "./Data/cache_activitats"
 
 
@@ -325,8 +325,6 @@ def guardar_cache(cache, ciudad_destino=""):
 
 
 def leer_cache(proporcion_ludico_festiva=0.5, proporcion_cultural=0.5):
-    g = Graph()
-
 
     # Consulta SPARQL para obtener los datos del grafo en Fuseki
     query = """

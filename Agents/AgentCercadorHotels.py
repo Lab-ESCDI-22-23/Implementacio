@@ -42,7 +42,10 @@ from AgentUtil.Logging import config_logger
 from AgentUtil.Util import gethostname
 import socket
 
-__author__ = 'javier'
+__author__ = 'agracia'
+
+FUSEKI_ENDPOINT = 'http://localhost:3030/Hotels'
+
 
 if True:
     # Definimos los parametros de la linea de comandos
@@ -202,12 +205,8 @@ def comunicacion():
     return gr.serialize(format='xml'), 200
 
 def buscar_hoteles(ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sys.float_info.max, ubicacion=None, diasViaje=None):
-    graph = Graph()
-    ontologyFile = open('./Data/Hoteles')
-    graph.parse(ontologyFile, format='xml')
-    first = second = 0
-    print("Funciona" + ciutat_desti)
 
+    first = second = 0
     query = """
             prefix rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
             prefix xsd:<http://www.w3.org/2001/XMLSchema#>
@@ -233,8 +232,6 @@ def buscar_hoteles(ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sy
         query += """str(?ubicacion) = '""" + ubicacion + """'"""
         first = 1
 
-
-
     if first == 1 or second == 1:
         query += """ && """
 
@@ -243,24 +240,26 @@ def buscar_hoteles(ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sy
                     ?precio <= """ + str(preciomax) + """  )}
                     order by asc(UCASE(str(?nombre)))"""
 
-    graph_query = graph.query(query)
+    response = requests.post(f"{FUSEKI_ENDPOINT}/query", data={"query": query})
+    results = response.json()
+    bindings = results.get("results", {}).get("bindings", [])
     result = Graph()
     hotel_count = 0
-    for row in graph_query:
-        nombre_hotel = row.nombre
+    for binding in bindings:
+        nombre_hotel = binding.get("nombre", {}).get("value", "")
         print("Nombre del hotel --> " + nombre_hotel)
-        precio_hotel = row.precio
-        id_hotel = row.id
-        subject_hotel = row.hotel
-        ciudad_destino = row.ciutat_desti
-        ubicacion_hotel = row.ubicacion
+        precio_hotel = binding.get("precio", {}).get("value", "")
+        id_hotel = binding.get("id", {}).get("value", "")
+        subject_hotel = URIRef(binding.get("hotel", {}).get("value", ""))
+
+        ubicacion_hotel = binding.get("ubicacion", {}).get("value", "")
+
         hotel_count += 1
         result.add((subject_hotel, RDF.type, ONTO.Hotel))
-        result.add((subject_hotel, ONTO.PrecioHotel, Literal(precio_hotel, datatype=XSD.float)))
-        result.add((subject_hotel, ONTO.Identificador, Literal(id_hotel, datatype=XSD.string)))
-        result.add((subject_hotel, ONTO.NombreHotel, Literal(nombre_hotel, datatype=XSD.string)))
-        result.add((subject_hotel, ONTO.UbicacionHotel, Literal(ubicacion_hotel, datatype=XSD.string)))
-        result.add((subject_hotel, ONTO.CiudadHotel, Literal(ciudad_destino, datatype=XSD.string)))
+        result.add((subject_hotel, ONTO.price, Literal(precio_hotel, datatype=XSD.float)))
+        result.add((subject_hotel, ONTO.id, Literal(id_hotel, datatype=XSD.string)))
+        result.add((subject_hotel, ONTO.name, Literal(nombre_hotel, datatype=XSD.string)))
+        result.add((subject_hotel, ONTO.location, Literal(ubicacion_hotel, datatype=XSD.string)))
 
     print(hotel_count)
     return result
@@ -290,7 +289,7 @@ def agentbehavior1(cola):
 
     :return:
     """
-
+    buscar_hoteles("Barcelona", 0, 1000, "Centro", 5)
 
     pass
 
