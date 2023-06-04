@@ -22,6 +22,7 @@ PAO =  ClosedNamespace(
         'Playful',  # Type: Int, Domain: TripRequest
         'Cultural',  # Type: Int, Domain: TripRequest
         'Festive',  # Type: Int, Domain: TripRequest
+        'Location',
         
         
     ]

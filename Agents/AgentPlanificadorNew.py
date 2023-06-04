@@ -13,105 +13,99 @@ from multiprocessing import Process, Queue
 import logging
 import argparse
 
-from flask import Flask, request
-from rdflib import Graph, Namespace, Literal
+from flask import Flask, render_template, request
+from rdflib import Graph, Namespace, Literal, XSD, URIRef
 from rdflib.namespace import FOAF, RDF
 
-from AgentUtil.ACL import ACL
 from AgentUtil.FlaskServer import shutdown_server
 from AgentUtil.ACLMessages import build_message, send_message, get_message_properties
 from AgentUtil.Agent import Agent
 from AgentUtil.Logging import config_logger
-from AgentUtil.DSO import DSO
 from AgentUtil.Util import gethostname
 import sys
-from multiprocessing import Process, Queue
 import socket
-from flask import Flask, request
-from rdflib import Namespace, Graph
-from pyparsing import Literal
-from AgentUtil.FlaskServer import shutdown_server
-from AgentUtil.Agent import Agent
-from AgentUtil.OntoNamespaces import ONTO
-from AgentUtil.ACLMessages import *
 
 
-from multiprocessing import Process
-import logging
-import argparse
-
-from flask import Flask, render_template, request
-from rdflib import Graph, Namespace
-from rdflib.namespace import FOAF, RDF
-from rdflib import XSD, Namespace, Literal, URIRef
 from AgentUtil.ACL import ACL
 from AgentUtil.DSO import DSO
-from AgentUtil.FlaskServer import shutdown_server
-from AgentUtil.ACLMessages import build_message, send_message
-from AgentUtil.Agent import Agent
-from AgentUtil.Logging import config_logger
-from AgentUtil.Util import gethostname
-import socket
+from AgentUtil.PAO import PAO
+from AgentUtil.OntoNamespaces import ONTO
 
 
+if True:
+    # Definimos los parametros de la linea de comandos
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--open', help="Define si el servidor esta abierto al exterior o no", action='store_true',
+                        default=False)
+    parser.add_argument('--verbose', help="Genera un log de la comunicacion del servidor web", action='store_true',
+                            default=False)
+    parser.add_argument('--port', type=int, help="Puerto de comunicacion del agente")
+    parser.add_argument('--dhost', help="Host del agente de directorio")
+    parser.add_argument('--dport', type=int, help="Puerto de comunicacion del agente de directorio")
 
-__author__ = 'javier'
+    # Logging
+    logger = config_logger(level=1)
 
-hostname = socket.gethostname()
+    # parsing de los parametros de la linea de comandos
+    args = parser.parse_args()
 
-# Logging
-logger = config_logger(level=1)
+    # Configuration stuff
+    if args.port is None:
+        port = 90010
+    else:
+        port = args.port
 
-# Configuration stuff
-port = 9011
+    if args.open:
+        hostname = '0.0.0.0'
+        hostaddr = gethostname()
+    else:
+        hostaddr = hostname = socket.gethostname()
 
-app = Flask(__name__)
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
+    print('DS Hostname =', hostaddr)
+    print('DS Hostname =', port)
 
-# Configuration constants and variables
-agn = Namespace("http://www.agentes.org#")
+    if args.dport is None:
+        dport = 9000
+    else:
+        dport = args.dport
 
-# Contador de mensajes
-mss_cnt = 0
-def get_count():
-    global mss_cnt
-    mss_cnt += 1
-    return mss_cnt
+    if args.dhost is None:
+        dhostname = socket.gethostname()
+    else:
+        dhostname = args.dhost
+
+    # Flask stuff
+    app = Flask(__name__)
+    if not args.verbose:
+        log = logging.getLogger('werkzeug')
+        log.setLevel(logging.ERROR)
+
+    # Configuration constants and variables
+    agn = Namespace("http://www.agentes.org#")
+
+    # Contador de mensajes
+    mss_cnt = 0
 
 # Datos del Agente
-AgentePlanficador = Agent('AgentePlanficador',
-                  agn.AgentePlanficador,
+PlanerAgent = Agent('PlanerAgent',
+                  agn.PlanerAgent,
                   'http://%s:%d/comm' % (hostname, port),
                   'http://%s:%d/Stop' % (hostname, port))
 
 # Directory agent address
 DirectoryAgent = Agent('DirectoryAgent',
                        agn.Directory,
-                       'http://%s:9000/Register' % hostname,
-                       'http://%s:9000/Stop' % hostname)
-
-
-AgenteHotel = Agent('AgenteHotel',
-                            agn.AgenteHotel,
-                            'http://%s:9010/comm' % hostname,
-                            'http://%s:9010/Stop' % hostname)
-
-AgenteVuelos = Agent('AgenteVuelos',
-                            agn.AgenteVuelos,
-                            'http://%s:9012/comm' % hostname,
-                            'http://%s:9012/Stop' % hostname)
-
-AgenteActividades = Agent('AgenteActividades',
-                            agn.AgenteVuelos,
-                            'http://%s:9013/comm' % hostname,
-                            'http://%s:9013/Stop' % hostname)
+                       'http://%s:%d/comm' % (dhostname, dport),
+                       'http://%s:%d/Stop' % (dhostname, dport))
 
 # Global dsgraph triplestore
 dsgraph = Graph()
 
 # Cola de comunicacion entre procesos
 cola1 = Queue()
+
+# Queue that waits for a 0 to end the agent
+endQueue = Queue()
 
 
 def register_message():
@@ -133,17 +127,18 @@ def register_message():
     # Construimos el mensaje de registro
     gmess.bind('foaf', FOAF)
     gmess.bind('dso', DSO)
-    reg_obj = agn[AgentePlanficador.name + '-Register']
+    
+    reg_obj = agn[PlanerAgent.name + '-Register']
     gmess.add((reg_obj, RDF.type, DSO.Register))
-    gmess.add((reg_obj, DSO.Uri, AgentePlanficador.uri))
-    gmess.add((reg_obj, FOAF.name, Literal(AgentePlanficador.name)))
-    gmess.add((reg_obj, DSO.Address, Literal(AgentePlanficador.address)))
-    gmess.add((reg_obj, DSO.AgentType, DSO.HotelsAgent))
+    gmess.add((reg_obj, DSO.Uri, PlanerAgent.uri))
+    gmess.add((reg_obj, FOAF.name, Literal(PlanerAgent.name)))
+    gmess.add((reg_obj, DSO.Address, Literal(PlanerAgent.address)))
+    gmess.add((reg_obj, DSO.AgentType, DSO.TravelServiceAgent))
 
     # Lo metemos en un envoltorio FIPA-ACL y lo enviamos
     gr = send_message(
         build_message(gmess, perf=ACL.request,
-                      sender=AgentePlanficador.uri,
+                      sender=PlanerAgent.uri,
                       receiver=DirectoryAgent.uri,
                       content=reg_obj,
                       msgcnt=mss_cnt),
@@ -152,27 +147,10 @@ def register_message():
 
     return gr
 
-
-#@app.route("/iface", methods=['GET', 'POST'])
-def browser_iface():
-    """
-    Permite la comunicacion con el agente via un navegador
-    via un formulario
-    """
-    return 'Nothing to see here'
-
-
-@app.route("/stop")
-def stop():
-    """
-    Entrypoint que para el agente
-
-    :return:
-    """
-    tidyup()
-    shutdown_server()
-    return "Parando Servidor"
-
+def get_count():
+    global mss_cnt
+    mss_cnt += 1
+    return mss_cnt
 
 @app.route("/comm")
 def comunicacion():
@@ -183,40 +161,44 @@ def comunicacion():
 
     global dsgraph
     message = request.args['content']
-    print('El mensaje 1')
     gm = Graph()
-    print('El mensaje 1.2')
-    print(message)
     gm.parse(data=message, format='xml')
-    print('El mensaje 2')
     msgdic = get_message_properties(gm)
+    
     gr = None
 
     if msgdic is None:
-        # Si no es, respondemos que no hemos entendido el mensaje
-        print('Mensaje no entendido')
-        gr = build_message(Graph(), ACL['not-understood'], sender=AgenteHotel.uri, msgcnt=get_count())
+        # If the message is not a ACL request
+        print("Message don't understood")
+        gr = build_message(Graph(), ACL['not-understood'], sender=PlanerAgent.uri, msgcnt=get_count())
 
     else:
-        # Obtenemos la performativa
+        # Get the performative
         if msgdic['performative'] != ACL.request:
-            print('Mensaje no es request')
-            # Si no es un request, respondemos que no hemos entendido el mensaje
+            print('Message is not a request')
+            # Is is not request return not understood
             gr = build_message(Graph(),
                                ACL['not-understood'],
-                               sender=AgenteHotel.uri,
+                               sender=PlanerAgent.uri,
                                msgcnt=get_count())
 
         else:
-            # Extraemos el objeto del contenido que ha de ser una accion de la ontologia
-            # de registro
-            print('Mensaje puede ser accion de onto')
+            # Get the action of the request
             content = msgdic['content']
-            # Averiguamos el tipo de la accion
             accion = gm.value(subject=content, predicate=RDF.type)
-
+            
+            # Trip Request
+            if accion == PAO.TripRequest:
+                logger.info("Trip request recived")
+                messageGraph = build_trip(gm)
+                
+                gr = build_message(messageGraph,
+                                   ACL['inform'],
+                                   sender=PlanerAgent.uri,
+                                   msgcnt=get_count())
+            
             # Accion de buscar productos
-            if accion == ONTO.PeticioViatge:
+            elif accion == ONTO.PeticioViatge:
                 print("Peticio de viatge")
 
                 #OBTENIR PARAMETRES PETICIO
@@ -286,16 +268,72 @@ def comunicacion():
                     -Tarda
                     -Nit
                 """
+           
             else:
                 print('Accio no reconeguda')
                 gr = build_message(Graph(),
                                    ACL['not-understood'],
-                                   sender=AgenteHotel.uri,
+                                   sender=PlanerAgent.uri,
                                    msgcnt=get_count())
 
 
     return gr.serialize(format='xml'), 200
 
+def directory_search_message(type):
+    """
+    Search in the directory agent the addres of one type of agent
+
+    :param type: Type of the agent to search
+    :return:
+    """
+    global mss_cnt
+    print('Searching in the Directory agent an agent of type: ', type)
+    #logger.info('Searching in the Directory agent an agent of type: ', type)
+
+    messageGraph = Graph()
+
+    messageGraph.bind('foaf', FOAF)
+    messageGraph.bind('dso', DSO)
+    actionObject = agn[PlanerAgent.name + '-search']
+    messageGraph.add((actionObject, RDF.type, DSO.Search))
+    messageGraph.add((actionObject, DSO.AgentType, type))
+
+    msg = build_message(messageGraph, perf=ACL.request,
+                        sender=PlanerAgent.uri,
+                        receiver=DirectoryAgent.uri,
+                        content=actionObject,
+                        msgcnt=mss_cnt)
+    
+    gr = send_message(msg, DirectoryAgent.address)
+    mss_cnt += 1
+    logger.info('Search response recived')
+
+    return gr
+
+def build_trip(tripRequestGraph: Graph):
+    msgdic = get_message_properties(tripRequestGraph)
+    content = msgdic['content']
+    tripRequestObj = tripRequestGraph.objects(content, PAO.TripRequest)
+    startDate = tripRequestGraph.value(subject=tripRequestObj, predicate=PAO.Start)
+    endDate = tripRequestGraph.value(subject=tripRequestObj, predicate=PAO.End)
+    location = tripRequestGraph.value(subject=tripRequestObj, predicate=PAO.Location)
+    playful = tripRequestGraph.value(subject=tripRequestObj, predicate=PAO.Playful)
+    cultural = tripRequestGraph.value(subject=tripRequestObj, predicate=PAO.Cultural)
+    festive = tripRequestGraph.value(subject=tripRequestObj, predicate=PAO.Festive)
+    budget = tripRequestGraph.value(subject=tripRequestObj, predicate=PAO.Budget)
+    originCity = tripRequestGraph.value(subject=tripRequestObj, predicate=PAO.From)
+    originCity = tripRequestGraph.value(subject=tripRequestObj, predicate=PAO.From)
+    
+    logger.info('Trip request made:')
+    logger.info(startDate)
+    logger.info(endDate)
+    logger.info(budget)
+    logger.info(playful)
+    logger.info(cultural)
+    logger.info(festive)
+    
+    tripGraph = Graph()
+    return tripGraph
 
 def buscar_hoteles(ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sys.float_info.max, ubicacion=None):
     logger.info('Inici Buscar Hotels')
@@ -330,7 +368,7 @@ def buscar_hoteles(ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sy
         g.add((ubiRestriction, ONTO.UbicacionHotel, Literal(ubicacion)))
         g.add((action, ONTO.RestringidaPor, URIRef(ubiRestriction)))
     print("Buscar hoteles v5")
-    msg = build_message(gmess=g, perf=ACL.request, sender= AgentePlanficador.uri, receiver=AgenteHotel.uri, content=action, msgcnt= mss_cnt)
+    msg = build_message(gmess=g, perf=ACL.request, sender= PlanerAgent.uri, receiver=AgenteHotel.uri, content=action, msgcnt= mss_cnt)
     print("Buscar hoteles v6")
     mss_cnt += 1
     logger.info('Enviar Buscar Hotels')
@@ -377,8 +415,6 @@ def buscar_hoteles(ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sy
         print("---------------------")
     """
 
-
-
 def buscar_vuelos(ciutat_origen=None, ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sys.float_info.max, fecha_salida=None):
     logger.info('Inici Buscar Vols')
 
@@ -421,7 +457,7 @@ def buscar_vuelos(ciutat_origen=None, ciutat_desti=None, preciomin=sys.float_inf
         g.add((fechaRestriction, ONTO.FechaSalida, Literal(fecha_salida)))
         g.add((action, ONTO.RestringidaPor, URIRef(fechaRestriction)))
     print("Buscar Vuelos v5")
-    msg = build_message(gmess=g, perf=ACL.request, sender= AgentePlanficador.uri, receiver=AgenteVuelos.uri, content=action, msgcnt= mss_cnt)
+    msg = build_message(gmess=g, perf=ACL.request, sender= PlanerAgent.uri, receiver=AgenteVuelos.uri, content=action, msgcnt= mss_cnt)
     print("Buscar Vuelos v6")
     mss_cnt += 1
     logger.info('Enviar Buscar Vols')
@@ -514,7 +550,7 @@ def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, pro
 
 
     print("Buscar Actividades v5")
-    msg = build_message(gmess=g, perf=ACL.request, sender= AgentePlanficador.uri, receiver=AgenteActividades.uri, content=action, msgcnt= mss_cnt)
+    msg = build_message(gmess=g, perf=ACL.request, sender= PlanerAgent.uri, receiver=AgenteActividades.uri, content=action, msgcnt= mss_cnt)
     print("Buscar Actividades v6")
     mss_cnt += 1
     logger.info('Enviar Buscar Activitats')
@@ -557,18 +593,6 @@ def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, pro
         print("---------------------")
     """
 
-
-
-
-def tidyup():
-    """
-    Acciones previas a parar el agente
-
-    """
-    global cola1
-    cola1.put(0)
-
-
 def agentbehavior1(cola):
     """
     Un comportamiento del agente
@@ -577,7 +601,7 @@ def agentbehavior1(cola):
     """
     # Registramos el agente
     logger.info('Register')
-    gr = register_message()
+    #gr = register_message()
     logger.info('Register Done')
 
     '''
@@ -628,16 +652,60 @@ def agentbehavior1(cola):
     pass
 
 
+# --------------- Functions to keep the server runing ---------------
+@app.route("/stop")
+def stop():
+    """
+    Entrypoint to stop the agent
 
+    :return:
+    """
+    tidyup()
+    shutdown_server()
+    return "Server Stoped"
 
+def tidyup():
+    """
+    Actions before stop the server
+
+    """
+    global endQueue
+    endQueue.put(0)
+
+def startAndWait(endQueue):
+    """
+    Starts the Agent and Waits for it to Stops
+    
+    :return:
+    """
+    # Register the Agent
+    #regResponseGraph = register_message()
+
+    # Wait until the 0 arrives to End
+    end = False
+    while not end:
+        while endQueue.empty():
+            pass
+        endSignal = endQueue.get()
+        if endSignal == 0:
+            end = True
+        else:
+            print(endSignal)
+
+# Starts the agent
 if __name__ == '__main__':
-    # Ponemos en marcha los behaviors
-    ab1 = Process(target=agentbehavior1, args=(cola1,))
-    ab1.start()
+    # Start the first behavior to register and wait
+    regResponseGraph = register_message()
+    init = Process(target=startAndWait, args=(endQueue,))
+    init.start()
+    
+    
+    #ab1 = Process(target=agentbehavior1, args=(cola1,))
+    #ab1.start()
 
-    # Ponemos en marcha el servidor
-    app.run(host=hostname, port=port)
+    # Starts the server
+    app.run(host=hostname, port=port, debug=True)
 
-    # Esperamos a que acaben los behaviors
-    ab1.join()
+    # Wait unitl the behaviors ends
+    init.join()
     print('The End')
