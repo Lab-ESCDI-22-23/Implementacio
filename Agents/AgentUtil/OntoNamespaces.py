@@ -26,6 +26,9 @@ TIO = Namespace('http://purl.org/tio/ns#')
 # Good relations
 GR = Namespace('http://purl.org/goodrelations/v1#')
 
+# ECSDI Ontology Namespace
+ONTO = Namespace('http://www.owl-ontologies.com/OntologiaECSDI.owl#')
+
 # DBPedia
 DBP = Namespace('http://dbpedia.org/ontology/')
 
