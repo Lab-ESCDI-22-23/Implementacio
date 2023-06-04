@@ -468,15 +468,22 @@ def buscar_vuelos(queue, ciutat_origen=None, ciutat_desti=None, preciomin=sys.fl
             if p == ONTO.DuracionVuelo:
                 flight['duracion'] = o
 
-    # Imprimir flights_list
-    for flight in flights_list:
-        print("--- Vuelo ---")
-        print("ID:", flight.get('id'))
-        print("Fecha llegada:", flight.get('fecha_llegada'))
-        print("Fecha Salida:", flight.get('fecha_salida'))
-        print("Precio:", flight.get('precio'))
-        print("Duracion:", flight.get('duracion'))
-        print("---------------------")
+
+    logger.info('Fi Buscar Vols')
+
+    """
+        # Imprimir flights_list
+        for flight in flights_list:
+            print("--- Vuelo ---")
+            print("ID:", flight.get('id'))
+            print("Fecha llegada:", flight.get('fecha_llegada'))
+            print("Fecha Salida:", flight.get('fecha_salida'))
+            print("Precio:", flight.get('precio'))
+            print("Duracion:", flight.get('duracion'))
+            print("---------------------")
+        """
+    return flights_list
+
 
     logger.info('Fi Buscar Vols')
     queue.put(flights_list)
@@ -603,6 +610,7 @@ def agentbehavior1(cola):
     q3 = Queue()
 
     logger.info('Creating')
+
     p1 = Process(target=buscar_hoteles, args=(q1, "Barcelona", 10, 120, "Centro"))
     p2 = Process(target=buscar_vuelos, args=(q2, "BCN", "LON", 50, 100, "2023-06-30"))
     p3 = Process(target=buscar_actividades, args=(q3, "Alta", 3, 5, 1, 1))
@@ -614,6 +622,7 @@ def agentbehavior1(cola):
     p1.join()
     p2.join()
     p3.join()
+
     logger.info('Done')
 
     logger.info('Iniciant cues')

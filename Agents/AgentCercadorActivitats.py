@@ -15,15 +15,17 @@ Asume que el agente de registro esta en el puerto 9000
 """
 from amadeus import Client, ResponseError
 import sys
+from rdflib import Graph, Literal, RDF, URIRef, XSD
 from multiprocessing import Process, Queue
 import socket
 from flask import Flask, request
-from rdflib import Namespace, Graph
+from rdflib import Namespace, Graph, Dataset
 from pyparsing import Literal
 from AgentUtil.FlaskServer import shutdown_server
 from AgentUtil.Agent import Agent
 from AgentUtil.OntoNamespaces import ONTO
 from AgentUtil.ACLMessages import *
+
 
 
 from multiprocessing import Process
@@ -43,6 +45,10 @@ from AgentUtil.Logging import config_logger
 from AgentUtil.Util import gethostname
 import socket
 
+
+FUSEKI_ENDPOINT = 'http://localhost:3030/MC_activitats'
+MC_PRESENCE = ""
+CACHE_FILE = "./Data/cache_activitats"
 
 
 __author__ = 'agracia'
@@ -99,6 +105,8 @@ agn = Namespace("http://www.agentes.org#")
 
 # Contador de mensajes
 mss_cnt = 0
+
+CACHE_FILE = "./Data/cache_activitats"
 
 # Datos del Agente
 AgenteActividades = Agent('AgenteActividades',
@@ -175,20 +183,15 @@ def comunicacion():
                 # Per totes les restriccions que tenim en la cerca d'hotels
                 for restriccio in restriccions:
                     if gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionNivelCarga:
-                        carga_actividades = gm.value(subject=restriccio, predicate=ONTO.CargaActividades)
-                        print('BÚSQUEDA->Restriccion de carga de actividades: ' + carga_actividades)
-                        restriccions_dict['carga_actividades'] = carga_actividades
+                        ciudad_destino = gm.value(subject=restriccio, predicate=ONTO.CiudadDestino)
+                        print('BÚSQUEDA->Restriccion de ciudad destino: ' + ciudad_destino)
+                        restriccions_dict['ciudad_destino'] = ciudad_destino
 
                     elif gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionNivelPrecio:
                         nivel_precio = gm.value(subject=restriccio, predicate=ONTO.NivelPrecio)
                         print('BÚSQUEDA->Restriccion de nivel de precio:' + nivel_precio)
                         restriccions_dict['nivel_precio'] = nivel_precio
 
-
-                    elif gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionDias:
-                        dias_viaje = gm.value(subject=restriccio, predicate=ONTO.DiasViaje)
-                        print('BÚSQUEDA->Restriccion de dias de viaje: ' + dias_viaje)
-                        restriccions_dict['dias_viaje'] = dias_viaje
 
                     elif gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionProporcionActividades:
                         proporcion_ludico_festiva = gm.value(subject=restriccio, predicate=ONTO.ProporcionLudicoFestiva)
@@ -206,25 +209,25 @@ def comunicacion():
     return gr.serialize(format='xml'), 200
 
 
-def buscar_actividades_festivas():
+def buscar_actividades_festivas(ciudad="Barcelona"):
 
     urls = [
-        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=discoteca%20en%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA",
-        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=actividades%20ocio%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA",
-        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=parque%20atracciones%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA",
-        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=zoo%20cine%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA"
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=discoteca%20en%20" + ciudad + "&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA", #Nit
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=actividades%20ocio%20" + ciudad + "&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA", #Mati-Tarda
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=parque%20atracciones%20zoo%20" + ciudad + "&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA", #Mati-Tarda
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=bar%20cine%20" + ciudad + "&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA" #Tarda-Nit
     ]
 
     results = []
-
+    time = ["Nocturna", "Mati-Tarda", "Mati-Tarda", "Nocturna-Tarda"]
     for i, url in enumerate(urls):
         response = requests.get(url)
         data = response.json()
 
         for item in data.get("results", []):
             name = item.get("name")
-            price_level = item.get("price_level", "None")
-            result = {"name": name, "price_level": price_level, "type": f"Consulta {i + 1}"}
+            price_level = item.get("price_level", "-1")
+            result = {"name": name, "price_level": price_level, "time": time[i], "type": "Ocio"}
             results.append(result)
 
 
@@ -232,16 +235,20 @@ def buscar_actividades_festivas():
     return results
 
 
-def buscar_actividades_culturales():
+def buscar_actividades_culturales(ciudad="Barcelona"):
 
     urls = [
-        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=discoteca%20en%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA",
-        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=actividades%20ocio%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA",
-        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=parque%20atracciones%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA",
-        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=zoo%20cine%20Barcelona&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA"
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=teatre%20culturals%20" + ciudad + "&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA", #Nit
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=restaurantes%20" + ciudad + "&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA",  #tarda-nit
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=museos%20en%20" + ciudad + "&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA", #tarda-mati
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=iglesia%20catedrales%20importantes%20" + ciudad + "&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA", #tarda-mati
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=monumentos%20importantes%20" + ciudad + "&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA", #tarda-mati
+        "https://maps.googleapis.com/maps/api/place/textsearch/json?query=sitios%20importantes%20" + ciudad + "&key=AIzaSyBX1DSnnWxD6s-t9_YzjtpbrPbPYcXJxoA" #tarda-mati
     ]
 
     results = []
+
+    time = ["Nocturna", "Nocturna-Tarda", "Mati-Tarda", "Mati-Tarda", "Mati-Tarda", "Mati-Tarda"]
 
     for i, url in enumerate(urls):
         response = requests.get(url)
@@ -249,28 +256,157 @@ def buscar_actividades_culturales():
 
         for item in data.get("results", []):
             name = item.get("name")
-            price_level = item.get("price_level", "None")
-            result = {"name": name, "price_level": price_level, "type": f"Consulta {i + 1}"}
+            price_level = item.get("price_level", "-1")
+            result = {"name": name, "price_level": price_level, "time": time[i], "type": "Cultural"}
             results.append(result)
 
     print("FIN LLAMADA API - TODO OK")
     return results
 
 
+def guardar_cache(cache, ciudad_destino=""):
+    actividades_count = 0
+    g = Graph()
 
-def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, proporcion_ludico_festiva=0.5, proporcion_cultural=0.5):
+    guardar_estado_cache(ciudad_destino)
 
-        print ("carga: " + carga_actividades)
+    for result in cache:
+        actividades_count += 1
+        subject_actividades = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#Actividad" + str(actividades_count))
+        name = result['name']
+        price_level = result['price_level']
+        time = result['time']
+        type = result['type']
+        g.add((subject_actividades, RDF.type, ONTO.Actividad))
+        g.add((subject_actividades, ONTO.NombreActividad, Literal(name, datatype=XSD.string)))
+        g.add((subject_actividades, ONTO.NivelPrecio, Literal(price_level, datatype=XSD.integer)))
+        g.add((subject_actividades, ONTO.Horario, Literal(time, datatype=XSD.string)))
+        g.add((subject_actividades, ONTO.TipoActividad, Literal(type, datatype=XSD.string)))
+
+    # Actualización de los datos en Fuseki
+    subject_cabeceraMC = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#CabeceraMC")
+    g.add((subject_cabeceraMC, RDF.type, ONTO.CabeceraMC))
+    g.add((subject_cabeceraMC, ONTO.CiudadDestino, Literal(ciudad_destino, datatype=XSD.string)))
+
+    # Borrar el contenido previo en Fuseki
+    delete_query = """
+            DELETE {
+                GRAPH <http://www.owl-ontologies.com/OntologiaECSDI.owl> {
+                    ?s ?p ?o .
+                }
+            }
+            WHERE {
+                GRAPH <http://www.owl-ontologies.com/OntologiaECSDI.owl> {
+                    ?s ?p ?o .
+                }
+            }
+        """
+    requests.post(f"{FUSEKI_ENDPOINT}/update", data=delete_query.encode())
+
+    # Guardar los nuevos datos en Fuseki
+    g.serialize(destination=None, format='xml')  # Serializar el grafo en formato XML
+
+    update_query = f"""
+        INSERT DATA {{
+            GRAPH <http://www.owl-ontologies.com/OntologiaECSDI.owl> {{
+                {g.serialize(format='nt')}  # Obtener la representación N-Triples del grafo
+            }}
+        }}
+    """
+
+    # Enviar la actualización a Fuseki mediante una consulta SPARQL
+    response = requests.post(f"{FUSEKI_ENDPOINT}/update", data=update_query.encode())
+
+    if response.status_code == 200:
+        print("Datos guardados exitosamente en Fuseki.")
+    else:
+        print("Error al guardar los datos en Fuseki:", response.text)
+
+
+
+def leer_cache(proporcion_ludico_festiva=0.5, proporcion_cultural=0.5):
+    g = Graph()
+
+
+    # Consulta SPARQL para obtener los datos del grafo en Fuseki
+    query = """
+        prefix default:<http://www.owl-ontologies.com/OntologiaECSDI.owl#>
+        prefix rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        SELECT ?actividad ?nombre ?precio ?time ?type
+        WHERE {
+            GRAPH <http://www.owl-ontologies.com/OntologiaECSDI.owl> {
+                { ?actividad rdf:type default:Actividad}.
+                ?actividad default:NombreActividad ?nombre .
+                ?actividad default:NivelPrecio ?precio .
+                ?actividad default:Horario ?time .
+                ?actividad default:TipoActividad ?type .   
+            
+    """
+
+    if(proporcion_ludico_festiva != 0 and proporcion_cultural == 0):
+        query += """FILTER( str(?type) = 'Ocio')}}"""
+    elif(proporcion_ludico_festiva == 0 and proporcion_cultural != 0):
+        query += """FILTER( str(?type) = 'Cultural')}}"""
+    else:
+        query +="""}}"""
+
+    # Realizar la consulta SPARQL a Fuseki
+    response = requests.post(f"{FUSEKI_ENDPOINT}/query", data={"query": query})
+
+    if response.status_code == 200:
+        # Parsear la respuesta en formato JSON
+        results = response.json()
+
+        # Obtener los datos de los resultados
+        bindings = results.get("results", {}).get("bindings", [])
+        resultados = []
+        for binding in bindings:
+            nombre = binding.get("nombre", {}).get("value", "")
+            precio = int(binding.get("precio", {}).get("value", ""))
+            time = binding.get("time", {}).get("value", "")
+            type = binding.get("type", {}).get("value", "")
+            resultados.append({"name": nombre, "price_level": precio, "time": time, "type": type})
+
+        return resultados
+    else:
+        print("Error al leer los datos de Fuseki:", response.text)
+        return []
+
+
+def guardar_estado_cache(ciudad_destino=""):
+    with open(CACHE_FILE, "w+") as file:
+        file.truncate(0)  # Borrar contenido inicial del archivo
+        file.write(ciudad_destino + "\n")
+
+def leer_estado_cache():
+    with open(CACHE_FILE, "r") as file:
+        return file.readline().strip()
+
+
+def buscar_actividades(ciudad_destino="Barcelona", nivel_precio=2, dias_viaje=0, proporcion_ludico_festiva=0.5, proporcion_cultural=0.5):
+
         print("nivel precio: " + str(nivel_precio))
         print("dias viaje: " + str(dias_viaje))
         print("Proporcion ludido y festiva: " + str(proporcion_ludico_festiva))
         print("Proporcion cultural: " + str(proporcion_cultural))
 
+        #if (leer_estado_cache() == ciudad_destino):
+        if (0):
+            print("ACCES A CACHE")
+            actividades_totales = leer_cache(proporcion_ludico_festiva, proporcion_cultural)
 
-        actividades_ludico_festivas = buscar_actividades_festivas()
+        else:
+            print("ACCES A API")
+            actividades_ludico_festivas = buscar_actividades_festivas(ciudad_destino)
+            actividades_culturales = buscar_actividades_culturales(ciudad_destino)
+            guardar_cache(actividades_ludico_festivas + actividades_culturales, ciudad_destino)
+            if (proporcion_ludico_festiva != 0 and proporcion_cultural != 0): actividades_totales = actividades_ludico_festivas + actividades_culturales
+            elif (proporcion_ludico_festiva == 0 and proporcion_cultural != 0): actividades_totales = actividades_culturales
+            elif (proporcion_ludico_festiva != 0 and proporcion_cultural == 0): actividades_totales = actividades_ludico_festivas
 
-        actividades_filtradas = [actividad for actividad in actividades_ludico_festivas if actividad["price_level"] == "None" or (isinstance(actividad["price_level"], int) and actividad["price_level"] <= nivel_precio)]
 
+
+        actividades_filtradas = [actividad for actividad in actividades_totales if int(actividad["price_level"]) <= nivel_precio]
 
         result = Graph()
         actividades_count = 0
@@ -278,11 +414,14 @@ def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, pro
         for consulta in actividades_filtradas:
             name = consulta["name"]
             price_level = consulta["price_level"]
-            #print("Nombre: " + name)
-            #print("Price level: " + str(price_level))
-            #print("--------------")
-            type = consulta["type"]
-            print("Este es el tipo: " + type)
+            print("Nombre: " + name)
+            print("Price level: " + str(price_level))
+            time = consulta["time"]
+            print("Este es el horario: " + time)
+            tipo = consulta["type"]
+            print("Tipo Actividad: " + tipo)
+            print("--------------")
+
             actividades_count += 1
             subject_actividades = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#Actividad" + str(actividades_count))
             result.add((subject_actividades, RDF.type, ONTO.Actividad))
@@ -319,7 +458,7 @@ def agentbehavior1(cola):
     :return:
     """
 
-    #buscar_actividades("Alta", 2, 5, 1, 0)
+    buscar_actividades("Barcelona", 3, 5, 0, 0.5)
     pass
 
 
@@ -334,3 +473,4 @@ if __name__ == '__main__':
     # Esperamos a que acaben los behaviors
     ab1.join()
     print('The End')
+
