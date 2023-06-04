@@ -37,7 +37,10 @@ ONTO =  ClosedNamespace(
         'festive',          # Type: Int, Domain: TripRequest, ActivitiesRequest, Activity
         'location',         
         'date',
-        'price',            
+        'price',   
+        'maxPrice',
+        'duration',
+        'id',         
         
         
     ]

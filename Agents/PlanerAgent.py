@@ -84,7 +84,6 @@ if True:
     mss_cnt = 0
 
 
-
 # Datos del Agente
 TravelServiceAgent = Agent("TravelServiceAgent",
                   agn.TravelServiceAgent,
@@ -102,7 +101,6 @@ dsgraph = Graph()
 
 # Queue that waits for a 0 to end the agent
 endQueue = Queue()
-
 
 def register_message():
     """
@@ -254,11 +252,12 @@ def build_trip(tripRequestGraph: Graph):
     destination = None
     for city in tripRequestGraph.subjects(RDF.type, ONTO.City):
         if (content, ONTO.origin, city) in tripRequestGraph:
-            print("origin", city)
-            origin = city
+            origin = tripRequestGraph.value(city, ONTO.name)
+            print("origin", origin)
         elif (content, ONTO.destination, city) in tripRequestGraph:
-            print("destination", city)
-            destination = city
+            destination = tripRequestGraph.value(city, ONTO.name)
+            print("destination", destination)
+            
     
     # Get the user making the request     
     user = None
@@ -278,10 +277,21 @@ def build_trip(tripRequestGraph: Graph):
     print("Cultural:", cultural)
     print("Festive:", festive)
     
+    lodgingFlightGraph = Graph()
+    returnFlightGraph = Graph()
+    lodgingFlightSearch = Process(target=search_flights, args=(origin, destination, startDate, budget, lodgingFlightGraph))
+    returnFlightSearch = Process(target=search_flights, args=(destination, origin, endDate, budget, returnFlightGraph))
+    lodgingFlightSearch.start()
+    returnFlightSearch.start()
     
+    lodgingFlightSearch.join()
+    returnFlightSearch.join()
     
+    print(lodgingFlightGraph)
+    print(returnFlightGraph)
     
     tripGraph = Graph()
+    
     return tripGraph
 
 
@@ -306,18 +316,10 @@ def search_hotels(city=None, location=None, budget=None):
     
     if city:
         messageGraph.add((hotelsRequestObj, ONTO.on , URIRef(city)))
-        #messageGraph.add((cityRestriction, ONTO.CiudadHotel, Literal(ciutat_desti)))  # datatype=XSD.string !??!!?!?!?
-        #messageGraph.add((hotelsRequestObj, ONTO.RestringidaPor, URIRef(cityRestriction)))
     if budget:
-        #minPriceRestriction = ONTO['RestriccionPrecio_' + str(mss_cnt)]
-        #messageGraph.add((minPriceRestriction, RDF.type, ONTO.RestriccionPrecio))
-        #messageGraph.add((minPriceRestriction, ONTO.PrecioMin, Literal(preciomin)))
         messageGraph.add((hotelsRequestObj, ONTO.budget, Literal(budget)))
     if location:
-        #ubiRestriction = ONTO['RestriccionUbicacion_' + str(mss_cnt)]
         messageGraph.add((hotelsRequestObj, ONTO.location, Literal(location)))
-        #messageGraph.add((ubiRestriction, ONTO.UbicacionHotel, Literal(ubicacion)))
-        #messageGraph.add((hotelsRequestObj, ONTO.RestringidaPor, URIRef(ubiRestriction))) 
     
     msg = build_message(gmess=messageGraph, perf=ACL.request, sender= TravelServiceAgent.uri, receiver=hotelAgentUri, content=hotelsRequestObj, msgcnt= mss_cnt)
     mss_cnt += 1
@@ -328,31 +330,109 @@ def search_hotels(city=None, location=None, budget=None):
 
     print("Buscar hoteles fin")
 
-    hotels_list = []
+
+def search_flights(origin, destination, date, budget, flightsGraph):
+    global mss_cnt
+    
+    # Search in the directory for an Hotel agent
+    typeResponse = directory_search_message(DSO.FlightsAgent)
+    
+    responseGraph = typeResponse.value(predicate=RDF.type, object=ACL.FipaAclMessage)
+    content = typeResponse.value(subject=responseGraph, predicate=ACL.content)
+    flightAgentAddres = typeResponse.value(subject=content, predicate=DSO.Address)
+    flightAgentUri = typeResponse.value(subject=content, predicate=DSO.Uri)
+
+    messageGraph = Graph()
+    messageGraph.bind('foaf', FOAF)
+    messageGraph.bind('onto', onto)
+
+    flightRequestObj = onto['FlightRequest_' + str(mss_cnt)]
+    
+    messageGraph.add((flightRequestObj, RDF.type, ONTO.FlightRequest))
+    messageGraph.add((flightRequestObj, ONTO.date, Literal(date)))
+    messageGraph.add((flightRequestObj, ONTO.maxPrice, Literal(budget)))
+    
+    #Create the city and add them
+    ori = onto[origin]
+    dest = onto[destination]
+    messageGraph.add((ori, RDF.type, ONTO.City))
+    messageGraph.add((ori, ONTO.name, Literal(origin)))
+    messageGraph.add((dest, RDF.type, ONTO.City))
+    messageGraph.add((dest, ONTO.name, Literal(destination)))
+    
+    messageGraph.add((flightRequestObj, ONTO.origin, ori))
+    messageGraph.add((flightRequestObj, ONTO.destination, dest))
+    
+    msg = build_message(gmess=messageGraph, perf=ACL.request, sender= TravelServiceAgent.uri, receiver=flightAgentUri, content=flightRequestObj, msgcnt= mss_cnt)
+    mss_cnt += 1
+    
+    logger.info('Search flight')
+    flightsGraph = send_message(msg, flightAgentAddres)
+    logger.info('Recive flights')
+    
+    flights_list = []
     subjects_position = {}
     pos = 0
-    for s, p, o in hotelsResponse:
+    
+    for s, p, o in flightsGraph:
         if s not in subjects_position:
             subjects_position[s] = pos
             pos += 1
-            hotels_list.append({})
+            flights_list.append({})
         if s in subjects_position:
-            hotel = hotels_list[subjects_position[s]]
+            flight = flights_list[subjects_position[s]]
             if p == RDF.type:
-                hotel['url'] = s
-            if p == ONTO.Identificador:
-                hotel['id'] = o
-            if p == ONTO.NombreHotel:
-                hotel['name'] = o
-            if p == ONTO.CiudadHotel:
-                hotel['city'] = o
-            if p == ONTO.PrecioHotel:
-                hotel['price'] = o
-            if p == ONTO.UbicacionHotel:
-                hotel["location"] = o
+                flight['url'] = s
+            if p == ONTO.id:
+                flight['id'] = o
+            if p == ONTO.start:
+                flight['startDate'] = o
+            if p == ONTO.end:
+                flight['endDate'] = o
+            if p == ONTO.price:
+                flight['price'] = o
+            if p == ONTO.duration:
+                flight['duration'] = o
 
-    logger.info('Fi Buscar hotels')
-    return hotels_list
+    # Imprimir flights_list
+    for flight in flights_list:
+        print("--- Vuelo ---")
+        print("ID:", flight.get('id'))
+        print("Fecha llegada:", flight.get('endDate'))
+        print("Fecha Salida:", flight.get('startDate'))
+        print("Precio:", flight.get('price'))
+        print("Duracion:", flight.get('duration'))
+        print("---------------------")
+
+    logger.info('Fi Buscar Vols')
+    
+def search_activities(city, festive, cultural, playful, budget, start, end):
+    global mss_cnt
+    
+    # Search in the directory for an Hotel agent
+    typeResponse = directory_search_message(DSO.ActivitiesAgent)
+    
+    responseGraph = typeResponse.value(predicate=RDF.type, object=ACL.FipaAclMessage)
+    content = typeResponse.value(subject=responseGraph, predicate=ACL.content)
+    activitiesAgentAddres = typeResponse.value(subject=content, predicate=DSO.Address)
+    activitiesAgentUri = typeResponse.value(subject=content, predicate=DSO.Uri)
+
+    messageGraph = Graph()
+
+    activitiesRequestObj = onto['ActivitiesRequest_' + str(mss_cnt)]
+    
+    messageGraph.add((activitiesRequestObj, RDF.type, ONTO.ActivitiesRequest))
+    
+    
+     
+    
+    msg = build_message(gmess=messageGraph, perf=ACL.request, sender= TravelServiceAgent.uri, receiver=activitiesAgentUri, content=hotelsRequestObj, msgcnt= mss_cnt)
+    mss_cnt += 1
+    
+    logger.info('Search flight')
+    flightResponse = send_message(msg, activitiesAgentAddres)
+    logger.info('Recive flights')
+
 
 # --------------- Functions to keep the server runing ---------------
 @app.route("/stop")
