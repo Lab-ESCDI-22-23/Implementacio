@@ -15,10 +15,11 @@ Asume que el agente de registro esta en el puerto 9000
 """
 from amadeus import Client, ResponseError
 import sys
+from rdflib import Graph, Literal, RDF, URIRef, XSD
 from multiprocessing import Process, Queue
 import socket
 from flask import Flask, request
-from rdflib import Namespace, Graph
+from rdflib import Namespace, Graph, Dataset
 from pyparsing import Literal
 from AgentUtil.FlaskServer import shutdown_server
 from AgentUtil.Agent import Agent
@@ -43,6 +44,8 @@ from AgentUtil.Logging import config_logger
 from AgentUtil.Util import gethostname
 import socket
 
+
+FUSEKI_ENDPOINT = 'http://localhost:3030/MC_activitats'
 
 
 __author__ = 'agracia'
@@ -262,7 +265,7 @@ def buscar_actividades_culturales(ciudad="Barcelona"):
     print("FIN LLAMADA API - TODO OK")
     return results
 
-def guardar_cache(cache, ciudad_destino = ""):
+def guardar_cache_old(cache, ciudad_destino = ""):
         actividades_count = 0
         g = Graph()
 
@@ -281,6 +284,62 @@ def guardar_cache(cache, ciudad_destino = ""):
         g.add((subject_cabeceraMC, RDF.type, ONTO.CabeceraMC))
         g.add((subject_cabeceraMC, ONTO.CiudadDestino, Literal(ciudad_destino, datatype=XSD.string)))
         g.serialize(destination=CACHE_FILE, format='xml')
+
+def guardar_cache(cache, ciudad_destino=""):
+    actividades_count = 0
+    g = Graph()
+
+    for result in cache:
+        actividades_count += 1
+        subject_actividades = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#Actividad" + str(actividades_count))
+        name = result['name']
+        price_level = result['price_level']
+        time = result['time']
+        g.add((subject_actividades, RDF.type, ONTO.Actividad))
+        g.add((subject_actividades, ONTO.NombreActividad, Literal(name, datatype=XSD.string)))
+        g.add((subject_actividades, ONTO.NivelPrecio, Literal(price_level, datatype=XSD.integer)))
+        g.add((subject_actividades, ONTO.Horario, Literal(time, datatype=XSD.string)))
+
+    # Actualización de los datos en Fuseki
+    subject_cabeceraMC = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#CabeceraMC")
+    g.add((subject_cabeceraMC, RDF.type, ONTO.CabeceraMC))
+    g.add((subject_cabeceraMC, ONTO.CiudadDestino, Literal(ciudad_destino, datatype=XSD.string)))
+
+    # Borrar el contenido previo en Fuseki
+    delete_query = """
+            DELETE {
+                GRAPH <http://www.owl-ontologies.com/OntologiaECSDI.owl> {
+                    ?s ?p ?o .
+                }
+            }
+            WHERE {
+                GRAPH <http://www.owl-ontologies.com/OntologiaECSDI.owl> {
+                    ?s ?p ?o .
+                }
+            }
+        """
+    requests.post(f"{FUSEKI_ENDPOINT}/update", data=delete_query.encode())
+
+    # Guardar los nuevos datos en Fuseki
+    g.serialize(destination=None, format='xml')  # Serializar el grafo en formato XML
+
+    update_query = f"""
+        INSERT DATA {{
+            GRAPH <http://www.owl-ontologies.com/OntologiaECSDI.owl> {{
+                {g.serialize(format='nt')}  # Obtener la representación N-Triples del grafo
+            }}
+        }}
+    """
+
+    # Enviar la actualización a Fuseki mediante una consulta SPARQL
+    response = requests.post(f"{FUSEKI_ENDPOINT}/update", data=update_query.encode())
+
+    if response.status_code == 200:
+        print("Datos guardados exitosamente en Fuseki.")
+    else:
+        print("Error al guardar los datos en Fuseki:", response.text)
+
+
 
 def cache_valida(ciudad_destino = ""):
     g = Graph()
@@ -336,7 +395,7 @@ def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, pro
         print("Proporcion ludido y festiva: " + str(proporcion_ludico_festiva))
         print("Proporcion cultural: " + str(proporcion_cultural))
 
-        if (cache_valida(ciudad_destino)):
+        if (0):
             print("ACCES A CACHE")
             actividades_totales = leer_cache()
 
@@ -397,7 +456,7 @@ def agentbehavior1(cola):
     :return:
     """
 
-    buscar_actividades("Alta", 3, 5, 0.5, 0.5, "Madrid")
+    buscar_actividades("Alta", 3, 5, 0.5, 0.5, "Barcelona")
     pass
 
 
