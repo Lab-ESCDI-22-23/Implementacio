@@ -28,7 +28,7 @@ import socket
 
 from AgentUtil.ACL import ACL
 from AgentUtil.DSO import DSO
-from AgentUtil.PAO import PAO
+from AgentUtil.ONTO import ONTO
 from AgentUtil.OntoNamespaces import ONTO
 
 
@@ -188,7 +188,7 @@ def comunicacion():
             accion = gm.value(subject=content, predicate=RDF.type)
             
             # Trip Request
-            if accion == PAO.TripRequest:
+            if accion == ONTO.TripRequest:
                 logger.info("Trip request recived")
                 messageGraph = build_trip(gm)
                 
@@ -313,16 +313,16 @@ def directory_search_message(type):
 def build_trip(tripRequestGraph: Graph):
     msgdic = get_message_properties(tripRequestGraph)
     content = msgdic['content']
-    tripRequestObj = tripRequestGraph.objects(content, PAO.TripRequest)
-    startDate = tripRequestGraph.value(subject=tripRequestObj, predicate=PAO.Start)
-    endDate = tripRequestGraph.value(subject=tripRequestObj, predicate=PAO.End)
-    location = tripRequestGraph.value(subject=tripRequestObj, predicate=PAO.Location)
-    playful = tripRequestGraph.value(subject=tripRequestObj, predicate=PAO.Playful)
-    cultural = tripRequestGraph.value(subject=tripRequestObj, predicate=PAO.Cultural)
-    festive = tripRequestGraph.value(subject=tripRequestObj, predicate=PAO.Festive)
-    budget = tripRequestGraph.value(subject=tripRequestObj, predicate=PAO.Budget)
-    originCity = tripRequestGraph.value(subject=tripRequestObj, predicate=PAO.From)
-    originCity = tripRequestGraph.value(subject=tripRequestObj, predicate=PAO.From)
+    tripRequestObj = tripRequestGraph.objects(content, ONTO.TripRequest)
+    startDate = tripRequestGraph.value(subject=tripRequestObj, predicate=ONTO.Start)
+    endDate = tripRequestGraph.value(subject=tripRequestObj, predicate=ONTO.End)
+    location = tripRequestGraph.value(subject=tripRequestObj, predicate=ONTO.Location)
+    playful = tripRequestGraph.value(subject=tripRequestObj, predicate=ONTO.Playful)
+    cultural = tripRequestGraph.value(subject=tripRequestObj, predicate=ONTO.Cultural)
+    festive = tripRequestGraph.value(subject=tripRequestObj, predicate=ONTO.Festive)
+    budget = tripRequestGraph.value(subject=tripRequestObj, predicate=ONTO.Budget)
+    originCity = tripRequestGraph.value(subject=tripRequestObj, predicate=ONTO.From)
+    originCity = tripRequestGraph.value(subject=tripRequestObj, predicate=ONTO.From)
     
     logger.info('Trip request made:')
     logger.info(startDate)

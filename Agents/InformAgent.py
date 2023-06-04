@@ -26,7 +26,7 @@ from AgentUtil.DSO import DSO
 from AgentUtil.Util import gethostname
 import socket
 
-from AgentUtil.PAO import PAO
+from AgentUtil.ONTO import ONTO
 
 
 if True:
@@ -80,6 +80,7 @@ if True:
 
     # Configuration constants and variables
     agn = Namespace("http://www.agentes.org#")
+    onto = Namespace("http://www.owl-ontologies.com/OntologiaECSDI.owl#")
 
     # Contador de mensajes
     mss_cnt = 0
@@ -232,45 +233,47 @@ def trip_request(user, tripStart, tripEnd, origin, destination, budget, playful,
     messageGraph = Graph()
     
     messageGraph.bind('foaf', FOAF)
-    messageGraph.bind('pao', PAO)
+    messageGraph.bind('onto', onto)
     
     #Build the person 
-    person = agn.user
+    person = onto[user]
     messageGraph.add((person, RDF.type, FOAF.Person))
     messageGraph.add((person, FOAF.name, Literal(user)))
     
-    tripRequestObject = agn[InformAgent.name + '-trip-request'] #Object of the trip request
+    tripRequestObj = onto['TripRequest_' + str(mss_cnt)] #Object of the trip request
     
-    messageGraph.add((tripRequestObject, RDF.type, PAO.TripRequest)) 
+    messageGraph.add((tripRequestObj, RDF.type, ONTO.TripRequest)) 
     
-    messageGraph.add((tripRequestObject, PAO.By, person)) #Add the user making the request
+    messageGraph.add((tripRequestObj, ONTO.by, person)) #Add the user making the request
     
     #Add the dates
-    messageGraph.add((tripRequestObject, PAO.Start, Literal(tripStart)))
-    messageGraph.add((tripRequestObject, PAO.End, Literal(tripEnd)))
-    messageGraph.add((tripRequestObject, PAO.Location, Literal(location)))
+    messageGraph.add((tripRequestObj, ONTO.start, Literal(tripStart)))
+    messageGraph.add((tripRequestObj, ONTO.end, Literal(tripEnd)))
+    messageGraph.add((tripRequestObj, ONTO.location, Literal(location)))
+    messageGraph.add((tripRequestObj, ONTO.budget, Literal(budget)))
     
     #Add the activities types
-    messageGraph.add((tripRequestObject, PAO.Playful, Literal(playful)))
-    messageGraph.add((tripRequestObject, PAO.Festive, Literal(festive)))
-    messageGraph.add((tripRequestObject, PAO.Cultural, Literal(cultural)))
+    messageGraph.add((tripRequestObj, ONTO.playful, Literal(playful)))
+    messageGraph.add((tripRequestObj, ONTO.festive, Literal(festive)))
+    messageGraph.add((tripRequestObj, ONTO.cultural, Literal(cultural)))
     
     #Create the city and add them
-    ori = agn.origin
-    dest = agn.destination
-    messageGraph.add((ori, RDF.type, PAO.City))
-    messageGraph.add((ori, PAO.Name, Literal(origin)))
-    messageGraph.add((dest, RDF.type, PAO.City))
-    messageGraph.add((dest, PAO.Name, Literal(destination)))
+    ori = onto[origin]
+    dest = onto[destination]
+    messageGraph.add((ori, RDF.type, ONTO.City))
+    messageGraph.add((ori, ONTO.name, Literal(origin)))
+    messageGraph.add((dest, RDF.type, ONTO.City))
+    messageGraph.add((dest, ONTO.name, Literal(destination)))
     
-    messageGraph.add((tripRequestObject, PAO.From, ori))
-    messageGraph.add((tripRequestObject, PAO.To, dest))
+    messageGraph.add((tripRequestObj, ONTO.origin, ori))
+    messageGraph.add((tripRequestObj, ONTO.destination, dest))
+    
     
     
     message = build_message(messageGraph, perf=ACL.request,
                         sender=InformAgent.uri,
                         receiver=planifierUri,
-                        content=tripRequestObject,
+                        content=tripRequestObj,
                         msgcnt=mss_cnt)
     
     logger.info("send the message")
@@ -305,7 +308,7 @@ def startAndWait(endQueue):
     :return:
     """
     # Register the Agent
-    #regResponseGraph = register_message()
+    regResponseGraph = register_message()
 
     # Wait until the 0 arrives to End
     end = False
@@ -321,7 +324,6 @@ def startAndWait(endQueue):
 # Starts the agent
 if __name__ == '__main__':
     # Start the first behavior to register and wait
-    regResponseGraph = register_message()
     init = Process(target=startAndWait, args=(endQueue,))
     init.start()
 

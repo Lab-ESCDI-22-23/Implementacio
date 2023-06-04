@@ -25,8 +25,7 @@ import socket
 
 from AgentUtil.ACL import ACL
 from AgentUtil.DSO import DSO
-from AgentUtil.PAO import PAO
-from AgentUtil.OntoNamespaces import ONTO
+from AgentUtil.ONTO import ONTO
 
 
 if True:
@@ -79,6 +78,7 @@ if True:
 
     # Configuration constants and variables
     agn = Namespace("http://www.agentes.org#")
+    onto = Namespace("http://www.owl-ontologies.com/OntologiaECSDI.owl#")
     
     # Contador de mensajes
     mss_cnt = 0
@@ -88,8 +88,8 @@ if True:
 # Datos del Agente
 TravelServiceAgent = Agent("TravelServiceAgent",
                   agn.TravelServiceAgent,
-                  'http://%s:%d/comm' % (hostname, port),
-                  'http://%s:%d/Stop' % (hostname, port))
+                  'http://%s:%d/comm' % (hostaddr, port),
+                  'http://%s:%d/Stop' % (hostaddr, port))
 
 # Directory agent address
 DirectoryAgent = Agent('DirectoryAgent',
@@ -186,7 +186,7 @@ def comunicacion():
             accion = gm.value(subject=content, predicate=RDF.type)
             
             # Trip Request
-            if accion == PAO.TripRequest:
+            if accion == ONTO.TripRequest:
                 logger.info("Trip request recived")
                 messageGraph = build_trip(gm)
                 
@@ -239,27 +239,120 @@ def directory_search_message(type):
 def build_trip(tripRequestGraph: Graph):
     msgdic = get_message_properties(tripRequestGraph)
     content = msgdic['content']
-    tripRequestObj = tripRequestGraph.objects(content, PAO.TripRequest)
-    startDate = tripRequestGraph.value(subject=tripRequestObj, predicate=PAO.Start)
-    endDate = tripRequestGraph.value(subject=tripRequestObj, predicate=PAO.End)
-    location = tripRequestGraph.value(subject=tripRequestObj, predicate=PAO.Location)
-    playful = tripRequestGraph.value(subject=tripRequestObj, predicate=PAO.Playful)
-    cultural = tripRequestGraph.value(subject=tripRequestObj, predicate=PAO.Cultural)
-    festive = tripRequestGraph.value(subject=tripRequestObj, predicate=PAO.Festive)
-    budget = tripRequestGraph.value(subject=tripRequestObj, predicate=PAO.Budget)
-    originCity = tripRequestGraph.value(subject=tripRequestObj, predicate=PAO.From)
-    originCity = tripRequestGraph.value(subject=tripRequestObj, predicate=PAO.From)
     
+    # Get fields atributes of the trip request
+    startDate = tripRequestGraph.value(subject=content, predicate=ONTO.start)
+    endDate = tripRequestGraph.value(subject=content, predicate=ONTO.end)
+    location = tripRequestGraph.value(subject=content, predicate=ONTO.location)
+    playful = tripRequestGraph.value(subject=content, predicate=ONTO.playful)
+    cultural = tripRequestGraph.value(subject=content, predicate=ONTO.cultural)
+    festive = tripRequestGraph.value(subject=content, predicate=ONTO.festive)
+    budget = tripRequestGraph.value(subject=content, predicate=ONTO.budget)
+       
+    # Get the origin and the destination
+    origin = None
+    destination = None
+    for city in tripRequestGraph.subjects(RDF.type, ONTO.City):
+        if (content, ONTO.origin, city) in tripRequestGraph:
+            print("origin", city)
+            origin = city
+        elif (content, ONTO.destination, city) in tripRequestGraph:
+            print("destination", city)
+            destination = city
+    
+    # Get the user making the request     
+    user = None
+    for person in tripRequestGraph.subjects(RDF.type, FOAF.Person):
+        if (content, ONTO.by, person) in tripRequestGraph:
+            user = person
+       
     logger.info('Trip request made:')
-    logger.info(startDate)
-    logger.info(endDate)
-    logger.info(budget)
-    logger.info(playful)
-    logger.info(cultural)
-    logger.info(festive)
+    print("User:", user)
+    print("Start:", startDate)
+    print("End:", endDate)
+    print("Origin:", origin)
+    print("Destination:", destination)
+    print("Location: ", location)
+    print("Budget:", budget)
+    print("Playful:", playful)
+    print("Cultural:", cultural)
+    print("Festive:", festive)
+    
+    
+    
     
     tripGraph = Graph()
     return tripGraph
+
+
+def search_hotels(city=None, location=None, budget=None):
+    global mss_cnt
+    
+    logger.info('Inici Buscar Hotels')
+    
+    # Search in the directory for an Hotel agent
+    typeResponse = directory_search_message(DSO.HotelsAgent)
+    
+    responseGraph = typeResponse.value(predicate=RDF.type, object=ACL.FipaAclMessage)
+    content = typeResponse.value(subject=responseGraph, predicate=ACL.content)
+    hotelAgentAddres = typeResponse.value(subject=content, predicate=DSO.Address)
+    hotelAgentUri = typeResponse.value(subject=content, predicate=DSO.Uri)
+
+    messageGraph = Graph()
+
+    hotelsRequestObj = onto['HotelRequest_' + str(mss_cnt)]
+    
+    messageGraph.add((hotelsRequestObj, RDF.type, ONTO.HotelRequest))
+    
+    if city:
+        messageGraph.add((hotelsRequestObj, ONTO.on , URIRef(city)))
+        #messageGraph.add((cityRestriction, ONTO.CiudadHotel, Literal(ciutat_desti)))  # datatype=XSD.string !??!!?!?!?
+        #messageGraph.add((hotelsRequestObj, ONTO.RestringidaPor, URIRef(cityRestriction)))
+    if budget:
+        #minPriceRestriction = ONTO['RestriccionPrecio_' + str(mss_cnt)]
+        #messageGraph.add((minPriceRestriction, RDF.type, ONTO.RestriccionPrecio))
+        #messageGraph.add((minPriceRestriction, ONTO.PrecioMin, Literal(preciomin)))
+        messageGraph.add((hotelsRequestObj, ONTO.budget, Literal(budget)))
+    if location:
+        #ubiRestriction = ONTO['RestriccionUbicacion_' + str(mss_cnt)]
+        messageGraph.add((hotelsRequestObj, ONTO.location, Literal(location)))
+        #messageGraph.add((ubiRestriction, ONTO.UbicacionHotel, Literal(ubicacion)))
+        #messageGraph.add((hotelsRequestObj, ONTO.RestringidaPor, URIRef(ubiRestriction))) 
+    
+    msg = build_message(gmess=messageGraph, perf=ACL.request, sender= TravelServiceAgent.uri, receiver=hotelAgentUri, content=hotelsRequestObj, msgcnt= mss_cnt)
+    mss_cnt += 1
+    
+    logger.info('Enviar Buscar Hotels')
+    hotelsResponse = send_message(msg, hotelAgentAddres)
+    logger.info('Rebre Buscar Hotels')
+
+    print("Buscar hoteles fin")
+
+    hotels_list = []
+    subjects_position = {}
+    pos = 0
+    for s, p, o in hotelsResponse:
+        if s not in subjects_position:
+            subjects_position[s] = pos
+            pos += 1
+            hotels_list.append({})
+        if s in subjects_position:
+            hotel = hotels_list[subjects_position[s]]
+            if p == RDF.type:
+                hotel['url'] = s
+            if p == ONTO.Identificador:
+                hotel['id'] = o
+            if p == ONTO.NombreHotel:
+                hotel['name'] = o
+            if p == ONTO.CiudadHotel:
+                hotel['city'] = o
+            if p == ONTO.PrecioHotel:
+                hotel['price'] = o
+            if p == ONTO.UbicacionHotel:
+                hotel["location"] = o
+
+    logger.info('Fi Buscar hotels')
+    return hotels_list
 
 # --------------- Functions to keep the server runing ---------------
 @app.route("/stop")
@@ -288,7 +381,7 @@ def startAndWait(endQueue):
     :return:
     """
     # Register the Agent
-    #regResponseGraph = register_message()
+    regResponseGraph = register_message()
 
     # Wait until the 0 arrives to End
     end = False
@@ -304,7 +397,6 @@ def startAndWait(endQueue):
 # Starts the agent
 if __name__ == '__main__':
     # Start the first behavior to register and wait
-    regResponseGraph = register_message()
     init = Process(target=startAndWait, args=(endQueue,))
     init.start()
     
