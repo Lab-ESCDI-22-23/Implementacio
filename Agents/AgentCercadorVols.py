@@ -17,32 +17,23 @@ from amadeus import Client, ResponseError
 import sys
 from multiprocessing import Process, Queue
 import socket
-from flask import Flask, request
-from rdflib import Namespace, Graph
-from pyparsing import Literal
+from flask import Flask, render_template, request
+from rdflib import XSD, Namespace, Literal, URIRef, Graph
 from AgentUtil.FlaskServer import shutdown_server
 from AgentUtil.Agent import Agent
-from AgentUtil.OntoNamespaces import ONTO
 from AgentUtil.ACLMessages import *
 
-
-from multiprocessing import Process
 import logging
 import argparse
 
-from flask import Flask, render_template, request
-from rdflib import Graph, Namespace
 from rdflib.namespace import FOAF, RDF
-from rdflib import XSD, Namespace, Literal, URIRef
 from AgentUtil.ACL import ACL
 from AgentUtil.DSO import DSO
-from AgentUtil.FlaskServer import shutdown_server
+from AgentUtil.ONTO import ONTO
 from AgentUtil.ACLMessages import build_message, send_message
-from AgentUtil.Agent import Agent
 from AgentUtil.Logging import config_logger
 from AgentUtil.Util import gethostname
 from AgentUtil.APIKeys import AMADEUS_KEY, AMADEUS_SECRET
-import socket
 
 
 amadeus = Client(
@@ -82,7 +73,9 @@ if True:
     else:
         hostaddr = hostname = socket.gethostname()
 
-    print('DS Hostname =', hostaddr)
+    print('Informer Hostname =', hostname)
+    print('Informer Hostaddres =', hostaddr)
+    print('Informer Port =', port)
 
     if args.dport is None:
         dport = 9000
@@ -100,38 +93,77 @@ if True:
         log = logging.getLogger('werkzeug')
         log.setLevel(logging.ERROR)
         
-# Configuration stuff
-hostname = socket.gethostname()
-port = 9012
+        
+    agn = Namespace("http://www.agentes.org#")
+    onto = Namespace("http://www.owl-ontologies.com/OntologiaECSDI.owl#")
 
-agn = Namespace("http://www.agentes.org#")
-
-# Contador de mensajes
-mss_cnt = 0
+    # Contador de mensajes
+    mss_cnt = 0
 
 # Datos del Agente
-AgenteVuelos = Agent('AgenteVuelos',
-                       agn.AgentSimple,
-                       'http://%s:%d/comm' % (hostname, port),
-                       'http://%s:%d/Stop' % (hostname, port))
+FlightsAgent = Agent('FlightsAgent',
+                       agn.FlightsAgent,
+                       'http://%s:%d/comm' % (hostaddr, port),
+                       'http://%s:%d/Stop' % (hostaddr, port))
 
 # Directory agent address
 DirectoryAgent = Agent('DirectoryAgent',
-                       agn.Directory,
-                       'http://%s:9000/Register' % hostname,
-                       'http://%s:9000/Stop' % hostname)
+                    agn.Directory,
+                    'http://%s:%d/Register' % (dhostname, dport),
+                    'http://%s:%d/Stop' % (dhostname, dport))
 
 # Global triplestore graph
 dsgraph = Graph()
 
+# Queue that waits for a 0 to end the agent
+endQueue = Queue()
+
 cola1 = Queue()
-
-
 
 def get_count():
     global mss_cnt
     mss_cnt += 1
     return mss_cnt
+
+def register_message():
+    """
+    Envia un mensaje de registro al servicio de registro
+    usando una performativa Request y una accion Register del
+    servicio de directorio
+
+    :param gmess:
+    :return:
+    """
+
+    logger.info('Register the Agent')
+
+    global mss_cnt
+
+    gmess = Graph()
+
+    # Build the register message
+    gmess.bind('foaf', FOAF)
+    gmess.bind('dso', DSO)
+    
+    
+    reg_obj = agn[FlightsAgent.name + '-Register']
+    gmess.add((reg_obj, RDF.type, DSO.Register))
+    gmess.add((reg_obj, DSO.Uri, FlightsAgent.uri))
+    gmess.add((reg_obj, FOAF.name, Literal(FlightsAgent.name)))
+    gmess.add((reg_obj, DSO.Address, Literal(FlightsAgent.address)))
+    gmess.add((reg_obj, DSO.AgentType, DSO.FlightsAgent))
+
+    # Lo metemos en un envoltorio FIPA-ACL y lo enviamos
+    gr = send_message(
+        build_message(gmess, perf=ACL.request,
+                      sender=FlightsAgent.uri,
+                      receiver=DirectoryAgent.uri,
+                      content=reg_obj,
+                      msgcnt=mss_cnt),
+        DirectoryAgent.address)
+    mss_cnt += 1
+
+    return gr
 
 @app.route("/comm")
 def comunicacion():
@@ -143,75 +175,76 @@ def comunicacion():
 
     global dsgraph
     message = request.args['content']
-    print('El mensaje 1')
     gm = Graph()
-    print('El mensaje 1.2')
-    print(message)
     gm.parse(data=message, format='xml')
-    print('El mensaje 2')
     msgdic = get_message_properties(gm)
+    
     gr = None
 
     if msgdic is None:
         # Si no es, respondemos que no hemos entendido el mensaje
         print('Mensaje no entendido')
-        gr = build_message(Graph(), ACL['not-understood'], sender=AgenteVuelos.uri, msgcnt=get_count())
+        gr = build_message(Graph(), ACL['not-understood'], sender=FlightsAgent.uri, msgcnt=get_count())
 
 
     else:
-        # Obtenemos la performativa
+        # Get the performative
         if msgdic['performative'] != ACL.request:
             print('Mensaje no es request')
-            # Si no es un request, respondemos que no hemos entendido el mensaje
+            # Is is not request return not understood
             gr = build_message(Graph(),
                                ACL['not-understood'],
-                               sender=AgenteVuelos.uri,
+                               sender=FlightsAgent.uri,
                                msgcnt=get_count())
 
         else:
-            # Extraemos el objeto del contenido que ha de ser una accion de la ontologia
-            # de registro
-            print('Mensaje puede ser accion de onto')
+            # Get the action of the request
             content = msgdic['content']
             # Averiguamos el tipo de la accion
             accion = gm.value(subject=content, predicate=RDF.type)
 
-            # Accion de buscar productos
-            if accion == ONTO.BuscarVuelos:
-                print("Works here")
-                restriccions = gm.objects(content, ONTO.RestringidaPor)
-                restriccions_dict = {}
-                # Per totes les restriccions que tenim en la cerca d'hotels
-                for restriccio in restriccions:
-                    if gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionOrigenDesti:
-                        ciutat_origen = gm.value(subject=restriccio, predicate=ONTO.CiudadOrigen)
-                        ciutat_desti = gm.value(subject=restriccio, predicate=ONTO.CiudadDestino)
-                        print('BÚSQUEDA->Restriccion de origen de vuelo: ' + ciutat_origen)
-                        print('BÚSQUEDA->Restriccion de destino de vuelo: ' + ciutat_desti)
-                        restriccions_dict['ciutat_origen'] = ciutat_origen
-                        restriccions_dict['ciutat_desti'] = ciutat_desti
-
-                    elif gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionPrecio:
-                        preciomax = gm.value(subject=restriccio, predicate=ONTO.PrecioMax)
-                        preciomin = gm.value(subject=restriccio, predicate=ONTO.PrecioMin)
-                        if preciomin:
-                            print('BÚSQUEDA->Restriccion de precio minimo:' + preciomin)
-                            restriccions_dict['preciomin'] = preciomin.toPython()
-                        if preciomax:
-                            print('BÚSQUEDA->Restriccion de precio maximo:' + preciomax)
-                            restriccions_dict['preciomax'] = preciomax.toPython()
-
-
-                    elif gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionFecha:
-                        fecha_salida = gm.value(subject=restriccio, predicate=ONTO.FechaSalida)
-                        print('BÚSQUEDA->Restriccion de fecha salida: ' + fecha_salida)
-                        restriccions_dict['fecha_salida'] = fecha_salida
-
-                gr = buscar_vuelos(**restriccions_dict)
+            # Trip Request
+            if accion == ONTO.FlightRequest:
+                logger.info("Flights request recived")
+                
+                messageGraph = resolve_request(gm)
+                
+                gr = build_message(messageGraph,
+                                   ACL['inform'],
+                                   sender=FlightsAgent.uri,
+                                   msgcnt=get_count())    
+            else:
+                print('Accio no reconeguda')
+                gr = build_message(Graph(),
+                                   ACL['not-understood'],
+                                   sender=FlightsAgent.uri,
+                                   msgcnt=get_count())         
 
     return gr.serialize(format='xml'), 200
 
 
+def resolve_request(flightRequestGraph: Graph):
+    """
+    Given the request graph, extracts the information and makes the request
+    """
+    msgdic = get_message_properties(flightRequestGraph)
+    content = msgdic['content']
+    
+    # Get the date and the max price
+    date = flightRequestGraph.value(subject=content, predicate=ONTO.date)
+    max_price = flightRequestGraph.value(subject=content, predicate=ONTO.maxPrice)
+    
+    # Get the origin and the destination
+    origin = None
+    destination = None
+    for city in flightRequestGraph.subjects(RDF.type, ONTO.City):
+        if (content, ONTO.origin, city) in flightRequestGraph:
+            origin = flightRequestGraph.value(city, ONTO.name)
+        if (content, ONTO.destination, city) in flightRequestGraph:
+            destination = flightRequestGraph.value(city, ONTO.name)
+    
+    return search_flights(origin=origin, destination=destination, date=date, maxPrice=max_price, minPrice=1)
+    
 
 def convertir_duracion_a_minutos(duracion):
     # Eliminar los caracteres no numéricos
@@ -233,25 +266,25 @@ def convertir_duracion_a_minutos(duracion):
 
     return duracion_minutos
 
-def buscar_vuelos(ciutat_origen=None, ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sys.float_info.max, fecha_salida=None):
+def search_flights(origin=None, destination=None, minPrice=1, maxPrice=sys.float_info.max, date=None):
 
-        print ("orig: " + ciutat_origen)
-        print("dest: " + ciutat_desti)
-        print("precio min: " + str(preciomin))
-        print("precio max: " + str(preciomax))
-        print("Fecha salida: " + fecha_salida)
+        print ("orig: " + origin)
+        print("dest: " + destination)
+        print("precio min: " + str(minPrice))
+        print("precio max: " + str(maxPrice))
+        print("Fecha salida: " + date)
 
         response = amadeus.shopping.flight_offers_search.get(
-            originLocationCode=ciutat_origen,
-            destinationLocationCode=ciutat_desti,
-            departureDate=fecha_salida,
+            originLocationCode=origin,
+            destinationLocationCode=destination,
+            departureDate=date,
             adults=1)
         print("FLIGHTS")
         print("-----------------------------------")
 
         flight_data_ordenado_por_duracion = [flight_data for flight_data in response.data
-                            if float(flight_data['price']['total']) >= preciomin and
-                            float(flight_data['price']['total']) <= preciomax]
+                            if float(flight_data['price']['total']) >= minPrice and
+                            float(flight_data['price']['total']) <= maxPrice]
 
 
 
@@ -267,62 +300,77 @@ def buscar_vuelos(ciutat_origen=None, ciutat_desti=None, preciomin=sys.float_inf
 
             # Obtener información de los itinerarios
             itineraries = flight_data['itineraries']
-            fecha_salida = itineraries[0]['segments'][0]['departure']['at']
+            date = itineraries[0]['segments'][0]['departure']['at']
             fecha_llegada = itineraries[0]['segments'][-1]['arrival']['at']
             duracion_vuelo = convertir_duracion_a_minutos(itineraries[0]['duration'])
             # Obtener identificador del vuelo
             id_vuelo = flight_data['id']
-            subject_vuelo = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#Vuelo" + id_vuelo)
+            subject_vuelo = onto["Flight_", id_vuelo] 
 
-
-            result.add((subject_vuelo, RDF.type, ONTO.Vuelo))
-            result.add((subject_vuelo, ONTO.PrecioVuelo, Literal(precio_vuelo, datatype=XSD.float)))
-            result.add((subject_vuelo, ONTO.Identificador, Literal(id_vuelo, datatype=XSD.string)))
-            result.add((subject_vuelo, ONTO.FechaSalida, Literal(fecha_salida, datatype=XSD.string)))
-            result.add((subject_vuelo, ONTO.FechaLlegada, Literal(fecha_llegada, datatype=XSD.string)))
-            result.add((subject_vuelo, ONTO.DuracionVuelo, Literal(duracion_vuelo, datatype=XSD.float)))
+            print("--- Vuelo ---")
+            print("ID:", id_vuelo)
+            print("Fecha llegada:", fecha_llegada)
+            print("Fecha Salida:", date)
+            print("Precio:", precio_vuelo)
+            print("Duracion:", duracion_vuelo)
+            print("---------------------")
+            result.add((subject_vuelo, RDF.type, ONTO.Flight))
+            result.add((subject_vuelo, ONTO.price, Literal(precio_vuelo, datatype=XSD.float)))
+            result.add((subject_vuelo, ONTO.id, Literal(id_vuelo, datatype=XSD.string)))
+            result.add((subject_vuelo, ONTO.start, Literal(date, datatype=XSD.string)))
+            result.add((subject_vuelo, ONTO.end, Literal(fecha_llegada, datatype=XSD.string)))
+            result.add((subject_vuelo, ONTO.duration, Literal(duracion_vuelo, datatype=XSD.float)))
 
         return result
 
-@app.route("/Stop")
+# --------------- Functions to keep the server runing ---------------
+@app.route("/stop")
 def stop():
     """
-    Entrypoint que para el agente
+    Entrypoint to stop the agent
 
     :return:
     """
     tidyup()
     shutdown_server()
-    return "Parando Servidor"
-
+    return "Server Stoped"
 
 def tidyup():
     """
-    Acciones previas a parar el agente
+    Actions before stop the server
 
     """
-    pass
+    global endQueue
+    endQueue.put(0)
 
-
-def agentbehavior1(cola):
+def startAndWait(endQueue):
     """
-    Un comportamiento del agente
-
+    Starts the Agent and Waits for it to Stops
+    
     :return:
     """
+    # Register the Agent
+    regResponseGraph = register_message()
 
-    #buscar_vuelos("BCN", "LON", 100, 150, "2023-05-28")
-    pass
-
+    # Wait until the 0 arrives to End
+    end = False
+    while not end:
+        while endQueue.empty():
+            pass
+        endSignal = endQueue.get()
+        if endSignal == 0:
+            end = True
+        else:
+            print(endSignal)
 
 if __name__ == '__main__':
-    # Ponemos en marcha los behaviors
-    ab1 = Process(target=agentbehavior1, args=(cola1,))
-    ab1.start()
+    # Start the first behavior to register and wait
+    init = Process(target=startAndWait, args=(endQueue,))
+    init.start()
 
-    # Ponemos en marcha el servidor
-    app.run(host=hostname, port=port)
+    # Starts the server
+    app.run(host=hostname, port=port, debug=True)
 
-    # Esperamos a que acaben los behaviors
-    ab1.join()
-    print('The End')
+    # Wait unitl the behaviors ends
+    init.join()
+    logger.info('The End')
