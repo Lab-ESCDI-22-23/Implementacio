@@ -455,18 +455,19 @@ def buscar_vuelos(ciutat_origen=None, ciutat_desti=None, preciomin=sys.float_inf
 
     logger.info('Fi Buscar Vols')
 
+    """
+        # Imprimir flights_list
+        for flight in flights_list:
+            print("--- Vuelo ---")
+            print("ID:", flight.get('id'))
+            print("Fecha llegada:", flight.get('fecha_llegada'))
+            print("Fecha Salida:", flight.get('fecha_salida'))
+            print("Precio:", flight.get('precio'))
+            print("Duracion:", flight.get('duracion'))
+            print("---------------------")
+        """
     return flights_list
-    """
-    # Imprimir flights_list
-    for flight in flights_list:
-        print("--- Vuelo ---")
-        print("ID:", flight.get('id'))
-        print("Fecha llegada:", flight.get('fecha_llegada'))
-        print("Fecha Salida:", flight.get('fecha_salida'))
-        print("Precio:", flight.get('precio'))
-        print("Duracion:", flight.get('duracion'))
-        print("---------------------")
-    """
+
 
 
 def buscar_actividades(carga_actividades=None, nivel_precio=2, dias_viaje=0, proporcion_ludico_festiva=0.5, proporcion_cultural=0.5):
