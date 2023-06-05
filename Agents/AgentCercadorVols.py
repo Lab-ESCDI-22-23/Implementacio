@@ -350,7 +350,9 @@ def startAndWait(endQueue):
     :return:
     """
     # Register the Agent
-    regResponseGraph = register_message()
+    logger.info('Register')
+    gr = register_message()
+    logger.info('Register Done')
 
     # Wait until the 0 arrives to End
     end = False

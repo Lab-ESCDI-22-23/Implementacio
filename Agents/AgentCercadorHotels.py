@@ -114,12 +114,48 @@ dsgraph = Graph()
 
 cola1 = Queue()
 
-
-
 def get_count():
     global mss_cnt
     mss_cnt += 1
     return mss_cnt
+
+def register_message():
+    """
+    Envia un mensaje de registro al servicio de registro
+    usando una performativa Request y una accion Register del
+    servicio de directorio
+
+    :param gmess:
+    :return:
+    """
+
+    print('Nos registramos')
+
+    global mss_cnt
+
+    gmess = Graph()
+
+    # Construimos el mensaje de registro
+    gmess.bind('foaf', FOAF)
+    gmess.bind('dso', DSO)
+    reg_obj = agn[AgenteHotel.name + '-Register']
+    gmess.add((reg_obj, RDF.type, DSO.Register))
+    gmess.add((reg_obj, DSO.Uri, AgenteHotel.uri))
+    gmess.add((reg_obj, FOAF.name, Literal(AgenteHotel.name)))
+    gmess.add((reg_obj, DSO.Address, Literal(AgenteHotel.address)))
+    gmess.add((reg_obj, DSO.AgentType, DSO.HotelsAgent))
+
+    # Lo metemos en un envoltorio FIPA-ACL y lo enviamos
+    gr = send_message(
+        build_message(gmess, perf=ACL.request,
+                      sender=AgenteHotel.uri,
+                      receiver=DirectoryAgent.uri,
+                      content=reg_obj,
+                      msgcnt=mss_cnt),
+        DirectoryAgent.address)
+    mss_cnt += 1
+
+    return gr
 
 @app.route("/comm")
 def comunicacion():
@@ -281,6 +317,12 @@ def tidyup():
     Acciones previas a parar el agente
 
     """
+    # Register the Agent
+    logger.info('Register')
+    gr = register_message()
+    logger.info('Register Done')
+
+
     pass
 
 
