@@ -35,6 +35,7 @@ DSO =  ClosedNamespace(
         # Named Individuals
         'FlightsAgent',
         'HotelsAgent',
+        'ActivitiesAgent',
         'TravelServiceAgent',
         'PersonalAgent',
         'WeatherAgent',

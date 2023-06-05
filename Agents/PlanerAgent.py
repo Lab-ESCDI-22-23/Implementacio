@@ -11,6 +11,7 @@ Agente que se registra como agente de hoteles y espera peticiones
 from multiprocessing import Process, Queue
 import logging
 import argparse
+import socket
 
 from flask import Flask, render_template, request
 from AgentUtil.FlaskServer import shutdown_server
@@ -21,7 +22,6 @@ from AgentUtil.ACLMessages import build_message, send_message, get_message_prope
 from AgentUtil.Agent import Agent
 from rdflib import Graph, Namespace, Literal, XSD, URIRef
 from rdflib.namespace import FOAF, RDF
-import socket
 
 from AgentUtil.ACL import ACL
 from AgentUtil.DSO import DSO
@@ -58,7 +58,7 @@ if True:
         hostaddr = hostname = socket.gethostname()
 
     print('DS Hostname =', hostaddr)
-    print('DS Hostname =', port)
+    print('DS Port =', port)
 
     if args.dport is None:
         dport = 9000
@@ -121,8 +121,6 @@ def register_message():
     # Build the register message
     gmess.bind('foaf', FOAF)
     gmess.bind('dso', DSO)
-    
-    
     
     reg_obj = agn[TravelServiceAgent.name + '-Register']
     gmess.add((reg_obj, RDF.type, DSO.Register))
@@ -525,7 +523,7 @@ if __name__ == '__main__':
     
 
     # Starts the server
-    app.run(host=hostname, port=port, debug=True)
+    app.run(host=hostname, port=port)
 
     # Wait unitl the behaviors ends
     init.join()

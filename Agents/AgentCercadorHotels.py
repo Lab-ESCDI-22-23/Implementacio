@@ -13,34 +13,26 @@ Asume que el agente de registro esta en el puerto 9000
 
 @author: javier
 """
-import sys
 from multiprocessing import Process, Queue
-import socket
-from flask import Flask, request
-from rdflib import Namespace, Graph
-from pyparsing import Literal
-from AgentUtil.FlaskServer import shutdown_server
-from AgentUtil.Agent import Agent
-from AgentUtil.OntoNamespaces import ONTO
-from AgentUtil.ACLMessages import *
-
-
-from multiprocessing import Process
 import logging
 import argparse
+import socket
+import sys
 
 from flask import Flask, render_template, request
-from rdflib import Graph, Namespace
-from rdflib.namespace import FOAF, RDF
-from rdflib import XSD, Namespace, Literal, URIRef
-from AgentUtil.ACL import ACL
-from AgentUtil.DSO import DSO
 from AgentUtil.FlaskServer import shutdown_server
-from AgentUtil.ACLMessages import build_message, send_message
-from AgentUtil.Agent import Agent
 from AgentUtil.Logging import config_logger
 from AgentUtil.Util import gethostname
-import socket
+
+
+from AgentUtil.ACLMessages import *
+from AgentUtil.Agent import Agent
+from rdflib import Namespace, Graph, Literal, XSD, URIRef
+from rdflib.namespace import FOAF, RDF
+
+from AgentUtil.ACL import ACL
+from AgentUtil.DSO import DSO
+from AgentUtil.ONTO import ONTO
 
 __author__ = 'agracia'
 
@@ -76,7 +68,9 @@ if True:
     else:
         hostaddr = hostname = socket.gethostname()
 
-    print('DS Hostname =', hostaddr)
+    print('DS Hostaddres =', hostaddr)
+    print('DS Hostname =', hostname)
+    print('DS Port =', port)
 
     if args.dport is None:
         dport = 9000
@@ -94,8 +88,8 @@ if True:
         log = logging.getLogger('werkzeug')
         log.setLevel(logging.ERROR)
 
-
 agn = Namespace("http://www.agentes.org#")
+onto = Namespace("http://www.owl-ontologies.com/OntologiaECSDI.owl#")
 
 # Contador de mensajes
 mss_cnt = 0
@@ -116,6 +110,9 @@ DirectoryAgent = Agent('DirectoryAgent',
 dsgraph = Graph()
 
 cola1 = Queue()
+
+# Queue that waits for a 0 to end the agent
+endQueue = Queue()
 
 
 
@@ -201,7 +198,7 @@ def comunicacion():
             # Averiguamos el tipo de la accion
             accion = gm.value(subject=content, predicate=RDF.type)
 
-            # Trip Request
+            # Hotels Request
             if accion == ONTO.HotelRequest:
                 logger.info("Hotels request recived")
 
@@ -221,18 +218,18 @@ def comunicacion():
     return gr.serialize(format='xml'), 200
 
 
-def resolve_request(hotelRequestGraph: Graph):
+def resolve_request(hotelsRequestGraph: Graph):
     """
     Given the request graph, extracts the information and makes the request
     """
-    msgdic = get_message_properties(hotelRequestGraph)
+    msgdic = get_message_properties(hotelsRequestGraph)
     content = msgdic['content']
 
     # Get the date and the max price
-    min_price = hotelRequestGraph.value(subject=content, predicate=ONTO.minPrice)
-    max_price = hotelRequestGraph.value(subject=content, predicate=ONTO.maxPrice)
-    destination = hotelRequestGraph.value(subject=content, predicate=ONTO.destination)
-    location = hotelRequestGraph.value(subject=content, predicate=ONTO.location)
+    min_price = hotelsRequestGraph.value(subject=content, predicate=ONTO.minPrice)
+    max_price = hotelsRequestGraph.value(subject=content, predicate=ONTO.maxPrice)
+    destination = hotelsRequestGraph.value(subject=content, predicate=ONTO.destination)
+    location = hotelsRequestGraph.value(subject=content, predicate=ONTO.location)
 
     print("Min price: " + str(min_price))
     print("Max price: " + str(max_price))
@@ -333,36 +330,26 @@ def search_hotels(destination=None, minPrice=sys.float_info.min, maxPrice=sys.fl
 
     print(hotel_count)
     return result
-@app.route("/Stop")
+
+# --------------- Functions to keep the server runing ---------------
+@app.route("/stop")
 def stop():
     """
-    Entrypoint que para el agente
+    Entrypoint to stop the agent
 
     :return:
     """
     tidyup()
     shutdown_server()
-    return "Parando Servidor"
-
+    return "Server Stoped"
 
 def tidyup():
     """
-    Acciones previas a parar el agente
+    Actions before stop the server
 
     """
-    pass
-
-
-def agentbehavior1(cola):
-    """
-    Un comportamiento del agente
-
-    :return:
-    """
-    #search_hotels("Barcelona", 0, 200, "Céntrico")
-
-    pass
-
+    global endQueue
+    endQueue.put(0)
 
 def startAndWait(endQueue):
     """
@@ -387,12 +374,12 @@ def startAndWait(endQueue):
 
 if __name__ == '__main__':
     # Ponemos en marcha los behaviors
-    ab1 = Process(target=startAndWait, args=(cola1,))
-    ab1.start()
+    init = Process(target=startAndWait, args=(cola1,))
+    init.start()
 
     # Ponemos en marcha el servidor
     app.run(host=hostname, port=port)
 
     # Esperamos a que acaben los behaviors
-    ab1.join()
+    init.join()
     print('The End')
