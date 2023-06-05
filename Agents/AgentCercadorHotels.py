@@ -249,6 +249,8 @@ def buscar_hoteles(ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sy
         nombre_hotel = binding.get("nombre", {}).get("value", "")
         print("Nombre del hotel --> " + nombre_hotel)
         precio_hotel = binding.get("precio", {}).get("value", "")
+        print("Precio/noche del hotel --> " + precio_hotel)
+        print("---------------------------------------")
         id_hotel = binding.get("id", {}).get("value", "")
         subject_hotel = URIRef(binding.get("hotel", {}).get("value", ""))
 
@@ -289,7 +291,7 @@ def agentbehavior1(cola):
 
     :return:
     """
-    buscar_hoteles("Barcelona", 0, 1000, "Centro", 5)
+    buscar_hoteles("Barcelona", 0, 200, "Céntrico", 5)
 
     pass
 
