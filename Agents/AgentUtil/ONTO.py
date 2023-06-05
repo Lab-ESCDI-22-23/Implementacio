@@ -40,8 +40,10 @@ ONTO =  ClosedNamespace(
         'price',   
         'maxPrice',
         'duration',
-        'id',         
-        
+        'id', 
+        'days',
+        'priceLevel',
+        'code',
         
     ]
 )
