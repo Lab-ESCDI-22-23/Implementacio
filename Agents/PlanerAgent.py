@@ -319,7 +319,9 @@ def build_trip(tripRequestGraph: Graph):
 
     
     result = Graph()
-
+    
+    tripPlanification = onto.tripPlanification
+    result.add((tripPlanification, RDF.type, ONTO.TripPlanification))
 
     print("Inicio planificacion")
     #Afegim hotel seleccionat
@@ -343,17 +345,21 @@ def build_trip(tripRequestGraph: Graph):
     result.add((subject_hotel, ONTO.id, Literal(chosenHotel.get("id"), datatype=XSD.string)))
     result.add((subject_hotel, ONTO.name, Literal(chosenHotel.get("name"), datatype=XSD.string)))
     result.add((subject_hotel, ONTO.location, Literal(chosenHotel.get("location"), datatype=XSD.string)))
+    
+    result.add((tripPlanification, ONTO.lodging, subject_hotel))
 
     print("ARA FEM VOLS")
     #Afegim vol anada seleccionat
-    subject_lodging_flight= onto.VolAnadaSeleccionat
-    chosenLodgingFlight = sorted(resultOutboundFlight,key=lambda hotel:hotel.get("price"))[1]
-    result.add((subject_lodging_flight, RDF.type, ONTO.Flight))
-    result.add((subject_lodging_flight, ONTO.price, Literal(chosenLodgingFlight.get("price"), datatype=XSD.float)))
-    result.add((subject_lodging_flight, ONTO.id, Literal(chosenLodgingFlight.get("id"), datatype=XSD.string)))
-    result.add((subject_lodging_flight, ONTO.start, Literal(chosenLodgingFlight.get("startDate"), datatype=XSD.string)))
-    result.add((subject_lodging_flight, ONTO.end, Literal(chosenLodgingFlight.get("endDate"), datatype=XSD.string)))
-    result.add((subject_lodging_flight, ONTO.duration, Literal(chosenLodgingFlight.get("duration"), datatype=XSD.string)))
+    subject_outbound_flight= onto.VolAnadaSeleccionat
+    chosenOutboundFlight = sorted(resultOutboundFlight,key=lambda hotel:hotel.get("price"))[1]
+    result.add((subject_outbound_flight, RDF.type, ONTO.Flight))
+    result.add((subject_outbound_flight, ONTO.price, Literal(chosenOutboundFlight.get("price"), datatype=XSD.float)))
+    result.add((subject_outbound_flight, ONTO.id, Literal(chosenOutboundFlight.get("id"), datatype=XSD.string)))
+    result.add((subject_outbound_flight, ONTO.start, Literal(chosenOutboundFlight.get("startDate"), datatype=XSD.string)))
+    result.add((subject_outbound_flight, ONTO.end, Literal(chosenOutboundFlight.get("endDate"), datatype=XSD.string)))
+    result.add((subject_outbound_flight, ONTO.duration, Literal(chosenOutboundFlight.get("duration"), datatype=XSD.string)))
+    
+    result.add((tripPlanification, ONTO.outboundFlight, subject_hotel))
     
     #Afegim vol tornada seleccionat
     subject_return_flight= onto.VolTornadaSeleccionat
@@ -364,6 +370,8 @@ def build_trip(tripRequestGraph: Graph):
     result.add((subject_return_flight, ONTO.start, Literal(chosenReturnFlight.get("startDate"), datatype=XSD.string)))
     result.add((subject_return_flight, ONTO.end, Literal(chosenReturnFlight.get("endDate"), datatype=XSD.string)))
     result.add((subject_return_flight, ONTO.duration, Literal(chosenReturnFlight.get("duration"), datatype=XSD.string)))
+    
+    result.add((tripPlanification, ONTO.returnFlight, subject_hotel))
 
     print("PUNTO DE CONTROL 0")
     actividades_count = 0
@@ -483,6 +491,7 @@ def build_trip(tripRequestGraph: Graph):
             result.add((subject_actividades, ONTO.priceLevel, Literal(chosenActivity.get("priceLevel"), datatype=XSD.integer)))
             result.add((subject_actividades, ONTO.type, Literal(chosenActivity.get("type"), datatype=XSD.string)))
             result.add((subject_actividades, ONTO.schedule, Literal(chosenActivity.get("schedule"), datatype=XSD.string)))
+            result.add((tripPlanification, ONTO.planedActivity, subject_actividades))
         elif cargaActividades==2:
             if float(numeroOcio)/float(playful) <= float(numeroCultural)/float(cultural):
                 chosenActivity = (actividadesMañanaOcio)[random.randrange(0,len((actividadesMañanaOcio)))]
@@ -496,6 +505,7 @@ def build_trip(tripRequestGraph: Graph):
             result.add((subject_actividades, ONTO.priceLevel, Literal(chosenActivity.get("priceLevel"), datatype=XSD.integer)))
             result.add((subject_actividades, ONTO.type, Literal(chosenActivity.get("type"), datatype=XSD.string)))
             result.add((subject_actividades, ONTO.schedule, Literal(chosenActivity.get("schedule"), datatype=XSD.string)))
+            result.add((tripPlanification, ONTO.planedActivity, subject_actividades))
             actividades_count+=1
                 
             if float(numeroOcio)/float(playful) <= float(numeroCultural)/float(cultural):
@@ -512,6 +522,7 @@ def build_trip(tripRequestGraph: Graph):
             result.add((subject_actividades, ONTO.priceLevel, Literal(chosenActivity.get("priceLevel"), datatype=XSD.integer)))
             result.add((subject_actividades, ONTO.type, Literal(chosenActivity.get("type"), datatype=XSD.string)))
             result.add((subject_actividades, ONTO.schedule, Literal(chosenActivity.get("schedule"), datatype=XSD.string)))
+            result.add((tripPlanification, ONTO.planedActivity, subject_actividades))
             
         else:
             if float(numeroOcio)/float(playful) <= float(numeroCultural)/float(cultural):
@@ -526,6 +537,7 @@ def build_trip(tripRequestGraph: Graph):
             result.add((subject_actividades, ONTO.priceLevel, Literal(chosenActivity.get("priceLevel"), datatype=XSD.integer)))
             result.add((subject_actividades, ONTO.type, Literal(chosenActivity.get("type"), datatype=XSD.string)))
             result.add((subject_actividades, ONTO.schedule, Literal(chosenActivity.get("schedule"), datatype=XSD.string)))
+            result.add((tripPlanification, ONTO.planedActivity, subject_actividades))
             actividades_count+=1
                 
             if float(numeroOcio)/float(playful) <= float(numeroCultural)/float(cultural):
@@ -541,6 +553,7 @@ def build_trip(tripRequestGraph: Graph):
             result.add((subject_actividades, ONTO.priceLevel, Literal(chosenActivity.get("priceLevel"), datatype=XSD.integer)))
             result.add((subject_actividades, ONTO.type, Literal(chosenActivity.get("type"), datatype=XSD.string)))
             result.add((subject_actividades, ONTO.schedule, Literal(chosenActivity.get("schedule"), datatype=XSD.string)))
+            result.add((tripPlanification, ONTO.planedActivity, subject_actividades))
             
             if float(numeroOcio)/float(playful) <= float(numeroCultural)/float(cultural):
                 chosenActivity = (actividadesNocheOcio)[random.randrange(0,len((actividadesNocheOcio)))]
@@ -555,6 +568,7 @@ def build_trip(tripRequestGraph: Graph):
             result.add((subject_actividades, ONTO.priceLevel, Literal(chosenActivity.get("priceLevel"), datatype=XSD.integer)))
             result.add((subject_actividades, ONTO.type, Literal(chosenActivity.get("type"), datatype=XSD.string)))
             result.add((subject_actividades, ONTO.schedule, Literal(chosenActivity.get("schedule"), datatype=XSD.string)))
+            result.add((tripPlanification, ONTO.planedActivity, subject_actividades))
 
     print("Final planificacion")
     print(result.serialize(format="turtle"))

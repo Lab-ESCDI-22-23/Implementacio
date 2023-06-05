@@ -26,6 +26,7 @@ ONTO =  ClosedNamespace(
         'on',               # Domain: Activity, Hotel, ActivitiesRequest, HotelRequest, Range: City
         'lodging',          # Domain: TripPlanification, Range: Hotel
         'result',           # Domain: TripRequest, Range: TripPlanification
+        'planedActivity',
 
         # Data properties
         'budget',           # Type: Int, Domain: TripRequest, ActivitiesRequest, HotelRequest, FlightRequest
@@ -47,7 +48,8 @@ ONTO =  ClosedNamespace(
         'code',
         'CabeceraMC',
         'schedule',
-        'type'
+        'type',
+        ''
         
     ]
 )

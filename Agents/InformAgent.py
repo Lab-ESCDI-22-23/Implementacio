@@ -194,19 +194,19 @@ def browser_iface():
             hotel['price'] = tripPlanificationGraph.value(hotelObj, ONTO.price)
             hotel['location'] = tripPlanificationGraph.value(hotelObj, ONTO.location)
 
-        '''
+
         activities = []     
         for acctivity in tripPlanificationGraph.subjects(RDF.type, ONTO.Activity):
             tempActivity = {}
+            activityObj = tripPlanificationGraph.value(RDF.type, ONTO.Activity)
             # Get the activities info 
             tempActivity['name'] = tripPlanificationGraph.value(acctivity, ONTO.id)
             tempActivity['priceLevel'] = tripPlanificationGraph.value(acctivity, ONTO.priceLevel)
             tempActivity['type'] = tripPlanificationGraph.value(acctivity, ONTO.type)
             tempActivity['schedule'] = tripPlanificationGraph.value(acctivity, ONTO.schedule)
             activities.append(tempActivity)
-        '''
         
-        return render_template('planification.html', outboundFlight=outboundFlight, returnFlight=returnFlight, hotel=hotel)
+        return render_template('planification.html', outboundFlight=outboundFlight, returnFlight=returnFlight, hotel=hotel, activities=activities)
 
 
 @app.route("/comm")
