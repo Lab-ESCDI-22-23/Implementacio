@@ -482,7 +482,7 @@ if __name__ == '__main__':
     
 
     # Starts the server
-    app.run(host=hostname, port=port, debug=True)
+    app.run(host=hostname, port=port)
 
     # Wait unitl the behaviors ends
     init.join()

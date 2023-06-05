@@ -317,11 +317,6 @@ def tidyup():
     Acciones previas a parar el agente
 
     """
-    # Register the Agent
-    logger.info('Register')
-    gr = register_message()
-    logger.info('Register Done')
-
 
     pass
 
@@ -332,7 +327,10 @@ def agentbehavior1(cola):
 
     :return:
     """
-
+    # Register the Agent
+    logger.info('Register')
+    gr = register_message()
+    logger.info('Register Done')
 
     pass
 
