@@ -270,7 +270,7 @@ if __name__ == '__main__':
     init.start()
 
     # Ponemos en marcha el servidor Flask
-    app.run(host=hostname, port=port, debug=True)
+    app.run(host=hostname, port=port)
 
     init.join()
     logger.info('The End')

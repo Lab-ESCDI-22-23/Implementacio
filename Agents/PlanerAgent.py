@@ -11,6 +11,7 @@ Agente que se registra como agente de hoteles y espera peticiones
 from multiprocessing import Process, Queue
 import logging
 import argparse
+import socket
 
 from flask import Flask, render_template, request
 from AgentUtil.FlaskServer import shutdown_server
@@ -21,7 +22,6 @@ from AgentUtil.ACLMessages import build_message, send_message, get_message_prope
 from AgentUtil.Agent import Agent
 from rdflib import Graph, Namespace, Literal, XSD, URIRef
 from rdflib.namespace import FOAF, RDF
-import socket
 
 from AgentUtil.ACL import ACL
 from AgentUtil.DSO import DSO
@@ -59,7 +59,7 @@ if True:
         hostaddr = hostname = socket.gethostname()
 
     print('DS Hostname =', hostaddr)
-    print('DS Hostname =', port)
+    print('DS Port =', port)
 
     if args.dport is None:
         dport = 9000
@@ -122,8 +122,6 @@ def register_message():
     # Build the register message
     gmess.bind('foaf', FOAF)
     gmess.bind('dso', DSO)
-    
-    
     
     reg_obj = agn[TravelServiceAgent.name + '-Register']
     gmess.add((reg_obj, RDF.type, DSO.Register))
@@ -247,6 +245,8 @@ def build_trip(tripRequestGraph: Graph):
     cultural = tripRequestGraph.value(subject=content, predicate=ONTO.cultural)
     festive = tripRequestGraph.value(subject=content, predicate=ONTO.festive)
     budget = tripRequestGraph.value(subject=content, predicate=ONTO.budget)
+    minPrice = tripRequestGraph.value(subject=content, predicate=ONTO.minPrice)
+    maxPrice = tripRequestGraph.value(subject=content, predicate=ONTO.maxPrice)
        
     # Get the origin and the destination
     origin = None
@@ -279,14 +279,22 @@ def build_trip(tripRequestGraph: Graph):
     print("Festive:", festive)
     
     lodgingFlightGraph = Graph()
+    returnFlightGraph = Graph()
+    hotelsGraph = Graph()
     lodgingFlightSearch = Process(target=search_flights, args=(origin, destination, startDate, budget, lodgingFlightGraph))
+    returnFlightSearch = Process(target=search_flights, args=(destination, origin, endDate, budget, returnFlightGraph))
+    hotelsSearch = Process(target=search_hotels, args=(destination, location, 0, 300))
     lodgingFlightSearch.start()
+    returnFlightSearch.start()
+    hotelsSearch.start()
+
     lodgingFlightSearch.join()
 
     returnFlightGraph = Graph()
     returnFlightSearch = Process(target=search_flights, args=(destination, origin, endDate, budget, returnFlightGraph))
     returnFlightSearch.start()
     returnFlightSearch.join()
+    hotelsSearch.join()
     
     hotelsGraph = Graph()
     hotelsSearch = Process(target=search_hotels, args=(destination,location,budget, hotelsGraph))
@@ -302,7 +310,8 @@ def build_trip(tripRequestGraph: Graph):
     print(activitiesGraph)
     print(lodgingFlightGraph)
     print(returnFlightGraph)
-    print(activitiesGraph)
+    print(hotelsGraph)
+
     
     tripGraph = Graph()
     
@@ -455,11 +464,13 @@ def build_trip(tripRequestGraph: Graph):
     return result
 
 
-def search_hotels(city=None, location=None, budget=None, hotelsGraph):
+def search_hotels(city=None, location=None, minPrice=None, maxPrice=None):
+
     global mss_cnt
     
     logger.info('Inici Buscar Hotels')
-    
+
+    print("minPrice: " + str(minPrice))
     # Search in the directory for an Hotel agent
     typeResponse = directory_search_message(DSO.HotelsAgent)
     
@@ -475,9 +486,11 @@ def search_hotels(city=None, location=None, budget=None, hotelsGraph):
     messageGraph.add((hotelsRequestObj, RDF.type, ONTO.HotelRequest))
     
     if city:
-        messageGraph.add((hotelsRequestObj, ONTO.on , URIRef(city)))
-    if budget:
-        messageGraph.add((hotelsRequestObj, ONTO.budget, Literal(budget)))
+        messageGraph.add((hotelsRequestObj, ONTO.destination, Literal(city)))
+    if minPrice:
+        messageGraph.add((hotelsRequestObj, ONTO.minPrice, Literal(minPrice)))
+    if maxPrice:
+        messageGraph.add((hotelsRequestObj, ONTO.maxPrice, Literal(maxPrice)))
     if location:
         messageGraph.add((hotelsRequestObj, ONTO.location, Literal(location)))
     
@@ -521,10 +534,10 @@ def search_hotels(city=None, location=None, budget=None, hotelsGraph):
         print("Preu:", hotel.get('price'))
         print("Localitzacio:", hotel.get('location'))
         print("---------------------")
-
     logger.info('Fi Buscar hotels')
     
     return hotels_list
+
 
 
 def search_flights(origin, destination, date, budget, flightsGraph):
@@ -621,10 +634,12 @@ def search_activities(city, festive, cultural, playful, budget, start, end, acti
     
     messageGraph.add((activitiesRequestObj, RDF.type, ONTO.ActivitiesRequest))
     
+
     messageGraph.add((activitiesRequestObj, ONTO.date, Literal(date)))
     messageGraph.add((activitiesRequestObj, ONTO.maxPrice, Literal(budget)))
     
     msg = build_message(gmess=messageGraph, perf=ACL.request, sender= TravelServiceAgent.uri, receiver=activitiesAgentUri, content=hotelsRequestObj, msgcnt= mss_cnt)
+
     mss_cnt += 1
     
     logger.info('Search activities')
@@ -698,6 +713,8 @@ def startAndWait(endQueue):
     # Register the Agent
     regResponseGraph = register_message()
 
+    search_hotels(city="Barcelona", location="Céntrico", minPrice=50, maxPrice=400)
+
     # Wait until the 0 arrives to End
     end = False
     while not end:
@@ -717,7 +734,7 @@ if __name__ == '__main__':
     
 
     # Starts the server
-    app.run(host=hostname, port=port, debug=True)
+    app.run(host=hostname, port=port)
 
     # Wait unitl the behaviors ends
     init.join()
