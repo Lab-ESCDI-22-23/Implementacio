@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+   xmlns:OntologiaECSDI="http://www.owl-ontologies.com/OntologiaECSDI.owl#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+>
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_1">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">250.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_1</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Barcelona</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Arts Barcelona</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_2">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">220.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_2</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Barcelona</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel W Barcelona</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_3">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">190.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_3</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Barcelona</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Casa Fuster</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_4">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">200.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_4</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Barcelona</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Majestic</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_5">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">180.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_5</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Barcelona</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Ohla Barcelona</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_6">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">150.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>No Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_6</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Barcelona</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Barcelona Princess</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_7">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">170.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>No Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_7</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Barcelona</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Gran Hotel La Florida</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_8">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">210.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_8</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Barcelona</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel El Palace</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_9">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">160.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_9</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Barcelona</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Claris</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_10">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">230.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_10</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Barcelona</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Mandarin Oriental Barcelona</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_11">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">140.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>No Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_11</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Barcelona</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel H10 Marina Barcelona</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_12">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">170.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_12</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Barcelona</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Pulitzer</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_13">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">190.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_13</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Barcelona</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel The Serras</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_14">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">150.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>No Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_14</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Barcelona</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Hilton Diagonal Mar Barcelona</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_15">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">100.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_15</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Barcelona</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Catalonia Barcelona Plaza</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+<rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_16">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">200.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_16</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Madrid</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Ritz Madrid</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_17">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">180.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_17</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Madrid</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Wellington</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_18">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">160.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_18</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Madrid</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Urban</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_19">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">220.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_19</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Madrid</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Villa Magna</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_20">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">190.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_20</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Madrid</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Santo Mauro</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_21">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">170.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>No Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_21</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Madrid</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel VP Plaza España Design</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_22">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">130.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>No Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_22</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Madrid</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel NH Collection Madrid Eurobuilding</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_23">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">150.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_23</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Madrid</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Meliá Castilla</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_24">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">180.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_24</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Madrid</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel AC Santo Mauro</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_25">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">140.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_25</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Madrid</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel VP Jardín de Recoletos</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_26">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">120.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_26</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Madrid</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Catalonia Gran Vía</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_27">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">160.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_27</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Madrid</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel NH Collection Madrid Suecia</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_28">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">110.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_28</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Madrid</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Vincci Capitol</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_29">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">100.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_29</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Madrid</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel NH Collection Madrid Abascal</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_30">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">140.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>No Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_30</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Madrid</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Eurostars Madrid Tower</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_31">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">350.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_31</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Paris</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Le Meurice</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_32">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">400.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_32</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Paris</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Plaza Athénée</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_33">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">380.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_33</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Paris</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Ritz Paris</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_34">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">300.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_34</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Paris</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Le Bristol Paris</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_35">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">450.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_35</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Paris</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Four Seasons George V</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_36">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">320.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_36</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Paris</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Shangri-La Paris</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_37">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">270.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_37</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Paris</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Le Royal Monceau-Raffles Paris</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_38">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">230.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_38</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Paris</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel The Peninsula Paris</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_39">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">280.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_39</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Paris</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Le Burgundy Paris</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_40">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">250.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_40</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Paris</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel La Réserve Paris</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_41">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">180.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_41</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Paris</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Le Meurice</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_42">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">200.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_42</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Paris</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Le Royal Monceau-Raffles Paris</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_43">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">230.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_43</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Paris</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Plaza Athénée Paris</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_44">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">190.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_44</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Paris</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Napoleon Paris</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel_45">
+    <OntologiaECSDI:PrecioHotel rdf:datatype="http://www.w3.org/2001/XMLSchema#float">220.0</OntologiaECSDI:PrecioHotel>
+    <OntologiaECSDI:UbicacionHotel>No Céntrico</OntologiaECSDI:UbicacionHotel>
+    <OntologiaECSDI:Identificador>Hotel_45</OntologiaECSDI:Identificador>
+    <OntologiaECSDI:CiudadHotel>Paris</OntologiaECSDI:CiudadHotel>
+    <OntologiaECSDI:NombreHotel>Hotel Pullman Paris Montparnasse</OntologiaECSDI:NombreHotel>
+    <rdf:type rdf:resource="http://www.owl-ontologies.com/OntologiaECSDI.owl#Hotel"/>
+  </rdf:Description>
+</rdf:RDF>
