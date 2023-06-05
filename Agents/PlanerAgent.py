@@ -359,7 +359,7 @@ def build_trip(tripRequestGraph: Graph):
     result.add((subject_outbound_flight, ONTO.end, Literal(chosenOutboundFlight.get("endDate"), datatype=XSD.string)))
     result.add((subject_outbound_flight, ONTO.duration, Literal(chosenOutboundFlight.get("duration"), datatype=XSD.string)))
     
-    result.add((tripPlanification, ONTO.outboundFlight, subject_hotel))
+    result.add((tripPlanification, ONTO.outboundFlight, subject_outbound_flight))
     
     #Afegim vol tornada seleccionat
     subject_return_flight= onto.VolTornadaSeleccionat
@@ -371,7 +371,7 @@ def build_trip(tripRequestGraph: Graph):
     result.add((subject_return_flight, ONTO.end, Literal(chosenReturnFlight.get("endDate"), datatype=XSD.string)))
     result.add((subject_return_flight, ONTO.duration, Literal(chosenReturnFlight.get("duration"), datatype=XSD.string)))
     
-    result.add((tripPlanification, ONTO.returnFlight, subject_hotel))
+    result.add((tripPlanification, ONTO.returnFlight, subject_return_flight))
 
     print("PUNTO DE CONTROL 0")
     actividades_count = 0

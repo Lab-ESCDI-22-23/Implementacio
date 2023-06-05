@@ -177,20 +177,20 @@ def browser_iface():
                 outboundFlight['id'] = tripPlanificationGraph.value(flight, ONTO.id)
                 outboundFlight['price'] = tripPlanificationGraph.value(flight, ONTO.price)
                 outboundFlight['duration'] = tripPlanificationGraph.value(flight, ONTO.duration)
-                outboundFlight['date'] = tripPlanificationGraph.value(flight, ONTO.date)
+                outboundFlight['date'] = tripPlanificationGraph.value(flight, ONTO.start)
             
             # Get returnFlight info 
             elif (None, ONTO.returnFlight, flight) in tripPlanificationGraph:
                 returnFlight['id'] = tripPlanificationGraph.value(flight, ONTO.id)
                 returnFlight['price'] = tripPlanificationGraph.value(flight, ONTO.price)
                 returnFlight['duration'] = tripPlanificationGraph.value(flight, ONTO.duration)
-                returnFlight['date'] = tripPlanificationGraph.value(flight, ONTO.date)
+                returnFlight['date'] = tripPlanificationGraph.value(flight, ONTO.start)
                 
                 
         hotel = {}
         if (None, RDF.type, ONTO.Hotel) in tripPlanificationGraph:
             hotelObj = tripPlanificationGraph.value(RDF.type, ONTO.hotel)
-            hotel['name'] = tripPlanificationGraph.value(hotelObj, ONTO.id)
+            hotel['name'] = tripPlanificationGraph.value(hotelObj, ONTO.name)
             hotel['price'] = tripPlanificationGraph.value(hotelObj, ONTO.price)
             hotel['location'] = tripPlanificationGraph.value(hotelObj, ONTO.location)
 
@@ -200,7 +200,7 @@ def browser_iface():
             tempActivity = {}
             activityObj = tripPlanificationGraph.value(RDF.type, ONTO.Activity)
             # Get the activities info 
-            tempActivity['name'] = tripPlanificationGraph.value(acctivity, ONTO.id)
+            tempActivity['name'] = tripPlanificationGraph.value(acctivity, ONTO.name)
             tempActivity['priceLevel'] = tripPlanificationGraph.value(acctivity, ONTO.priceLevel)
             tempActivity['type'] = tripPlanificationGraph.value(acctivity, ONTO.type)
             tempActivity['schedule'] = tripPlanificationGraph.value(acctivity, ONTO.schedule)
