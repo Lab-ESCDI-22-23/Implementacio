@@ -99,7 +99,7 @@ mss_cnt = 0
 
 # Datos del Agente
 AgenteHotel = Agent('AgenteHotel',
-                       agn.AgentSimple,
+                       agn.HotelsAgent,
                        'http://%s:%d/comm' % (hostname, port),
                        'http://%s:%d/Stop' % (hostname, port))
 

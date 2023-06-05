@@ -110,7 +110,7 @@ CACHE_FILE = "./Data/cache_activitats"
 
 # Datos del Agente
 AgenteActividades = Agent('AgenteActividades',
-                       agn.AgentSimple,
+                       agn.ActivitiesAgent,
                        'http://%s:%d/comm' % (hostname, port),
                        'http://%s:%d/Stop' % (hostname, port))
 
