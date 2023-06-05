@@ -154,7 +154,7 @@ def register_message():
     gmess.add((reg_obj, DSO.Uri, AgenteActividades.uri))
     gmess.add((reg_obj, FOAF.name, Literal(AgenteActividades.name)))
     gmess.add((reg_obj, DSO.Address, Literal(AgenteActividades.address)))
-    gmess.add((reg_obj, DSO.AgentType, DSO.TravelServiceAgent))
+    gmess.add((reg_obj, DSO.AgentType, DSO.ActivitiesAgent))
 
     # Lo metemos en un envoltorio FIPA-ACL y lo enviamos
     gr = send_message(

@@ -63,7 +63,7 @@ if True:
 
     # Configuration stuff
     if args.port is None:
-        port = 9010
+        port = 9011
     else:
         port = args.port
 
