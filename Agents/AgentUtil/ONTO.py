@@ -39,11 +39,15 @@ ONTO =  ClosedNamespace(
         'date',
         'price',   
         'maxPrice',
+        'minPrice',
         'duration',
         'id', 
         'days',
         'priceLevel',
         'code',
+        'CabeceraMC',
+        'schedule',
+        'type'
         
     ]
 )

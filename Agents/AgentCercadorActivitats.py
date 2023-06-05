@@ -312,16 +312,16 @@ def guardar_cache(cache, ciudad_destino=""):
         price_level = result['price_level']
         time = result['time']
         type = result['type']
-        g.add((subject_actividades, RDF.type, ONTO.Actividad))
-        g.add((subject_actividades, ONTO.NombreActividad, Literal(name, datatype=XSD.string)))
-        g.add((subject_actividades, ONTO.NivelPrecio, Literal(price_level, datatype=XSD.integer)))
-        g.add((subject_actividades, ONTO.Horario, Literal(time, datatype=XSD.string)))
-        g.add((subject_actividades, ONTO.TipoActividad, Literal(type, datatype=XSD.string)))
+        g.add((subject_actividades, RDF.type, ONTO.Activity))
+        g.add((subject_actividades, ONTO.name, Literal(name, datatype=XSD.string)))
+        g.add((subject_actividades, ONTO.price, Literal(price_level, datatype=XSD.integer)))
+        g.add((subject_actividades, ONTO.schedule, Literal(time, datatype=XSD.string)))
+        g.add((subject_actividades, ONTO.type, Literal(type, datatype=XSD.string)))
 
     # Actualización de los datos en Fuseki
     subject_cabeceraMC = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#CabeceraMC")
     g.add((subject_cabeceraMC, RDF.type, ONTO.CabeceraMC))
-    g.add((subject_cabeceraMC, ONTO.CiudadDestino, Literal(ciudad_destino, datatype=XSD.string)))
+    g.add((subject_cabeceraMC, ONTO.on, Literal(ciudad_destino, datatype=XSD.string)))
 
     # Borrar el contenido previo en Fuseki
     delete_query = """
@@ -455,10 +455,10 @@ def activities_seach(ciudad_destino="Barcelona", nivel_precio=2, dias_viaje=0, p
             print("--------------")
 
             actividades_count += 1
-            subject_actividades = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#Actividad" + str(actividades_count))
-            result.add((subject_actividades, RDF.type, ONTO.Actividad))
-            result.add((subject_actividades, ONTO.NombreActividad, Literal(name, datatype=XSD.string)))
-            result.add((subject_actividades, ONTO.NivelPrecio, Literal(price_level, datatype=XSD.integer)))
+            subject_actividades = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#Activity" + str(actividades_count))
+            result.add((subject_actividades, RDF.type, ONTO.Activity))
+            result.add((subject_actividades, ONTO.name, Literal(name, datatype=XSD.string)))
+            result.add((subject_actividades, ONTO.price, Literal(price_level, datatype=XSD.integer)))
 
         print("FIN CONSTRUCCION - TODO OK - ENVIANDO GRAFO")
         return result

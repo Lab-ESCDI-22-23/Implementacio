@@ -293,11 +293,12 @@ def build_trip(tripRequestGraph: Graph):
     returnFlightSearch.join()
 
 
+
     hotelsGraph = Graph()
     hotelsSearch = Process(target=search_hotels, args=(destination, location, budget, hotelsGraph))
     hotelsSearch.start()
     hotelsSearch.join()
-     
+
     
     #TODO
     activitiesGraph = Graph()
@@ -310,7 +311,6 @@ def build_trip(tripRequestGraph: Graph):
     print(returnFlightGraph)
     print(hotelsGraph)
 
-    
     
     result = Graph()
     
@@ -457,7 +457,7 @@ def build_trip(tripRequestGraph: Graph):
             result.add((subject_actividades, ONTO.PriceLevel, Literal(chosenActivity.get("priceLevel"), datatype=XSD.integer)))
             result.add((subject_actividades, ONTO.Type, Literal(chosenActivity.get("type"), datatype=XSD.string)))
             result.add((subject_actividades, ONTO.Schedule, Literal(chosenActivity.get("schedule"), datatype=XSD.string)))
-    
+
     return result
 
 def search_hotels(city, location, budget, hotelsGraph):
@@ -508,7 +508,11 @@ def search_hotels(city, location, budget, hotelsGraph):
     subjects_position = {}
     pos = 0
     
-    for s, p, o in hotelsGraph:
+    responseGraph = hotelsGraph.value(predicate=RDF.type, object=ACL.FipaAclMessage)
+    
+    print(hotelsGraph.serialize(format="turtle"))
+    
+    for s, p, o in responseGraph:
         if s not in subjects_position:
             subjects_position[s] = pos
             pos += 1
@@ -601,6 +605,8 @@ def search_flights(origin, destination, date, budget, flightsGraph):
     flightsGraph = send_message(msg, flightAgentAddres)
     logger.info('Recive flights')
     
+    print(flightsGraph.serialize(format="turtle"))
+    
     flights_list = []
     subjects_position = {}
     pos = 0
@@ -663,8 +669,8 @@ def search_activities(city, festive, cultural, playful, priceLevel, start, end, 
 
     # Add the days
     # TODO: calculate the days
-    startDate = datetime.datetime.strptime(start, '%Y-%m-%d')
-    endDate = datetime.datetime.strptime(end, '%Y-%m-%d')
+    startDate = datetime.strptime(start, '%Y-%m-%d')
+    endDate = datetime.strptime(end, '%Y-%m-%d')
     days = (endDate-startDate).days
     messageGraph.add((activitiesRequestObj, ONTO.days, Literal(str(days))))
     
@@ -674,8 +680,8 @@ def search_activities(city, festive, cultural, playful, priceLevel, start, end, 
     
     # Add cultural-festive
     # TODO: calculate precentages
-    culturalPercentage = cultural/10
-    festivePrecentage = festive/10
+    culturalPercentage = int(cultural)/10
+    festivePrecentage = int(festive)/10
     messageGraph.add((activitiesRequestObj, ONTO.cultural, Literal(culturalPercentage)))
     messageGraph.add((activitiesRequestObj, ONTO.festive, Literal(festivePrecentage)))
     
@@ -703,13 +709,13 @@ def search_activities(city, festive, cultural, playful, priceLevel, start, end, 
                 activity['url'] = s
             if p == ONTO.id:
                 activity['id'] = o
-            if p == ONTO.Name:
+            if p == ONTO.name:
                 activity['name'] = o
-            if p == ONTO.PriceLevel:
+            if p == ONTO.priceLevel:
                 activity['priceLevel'] = o
-            if p == ONTO.Type:
+            if p == ONTO.type:
                 activity['type'] = o
-            if p == ONTO.Schedule:
+            if p == ONTO.schedule:
                 activity["schedule"] = o
 
     # Imprimir flights_list
