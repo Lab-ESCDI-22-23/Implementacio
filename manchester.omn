@@ -1,0 +1,445 @@
+Prefix: : <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto/>
+Prefix: owl: <http://www.w3.org/2002/07/owl#>
+Prefix: rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+Prefix: xml: <http://www.w3.org/XML/1998/namespace>
+Prefix: xsd: <http://www.w3.org/2001/XMLSchema#>
+
+
+
+Ontology: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto>
+
+
+AnnotationProperty: rdfs:comment
+
+    
+Datatype: rdf:PlainLiteral
+
+    
+Datatype: rdfs:Literal
+
+    
+Datatype: xsd:dateTime
+
+    
+Datatype: xsd:float
+
+    
+Datatype: xsd:int
+
+    
+Datatype: xsd:integer
+
+    
+Datatype: xsd:string
+
+    
+ObjectProperty: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#by>
+
+    Annotations: 
+        rdfs:comment "Represents the relation between the TripReques and the User who has made it."
+    
+    Domain: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripRequest>
+    
+    Range: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#User>
+    
+    
+ObjectProperty: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#destination>
+
+    Annotations: 
+        rdfs:comment "Relation between one thing and the final place where it will happen."
+    
+    DisjointWith: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#origin>
+    
+    Domain: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Flight>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#FlightRequest>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripRequest>
+    
+    Range: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#City>
+    
+    
+ObjectProperty: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#lodging>
+
+    Annotations: 
+        rdfs:comment "Relation of the TripPlanification and the Hotel where the user will stay during the trip"
+    
+    Domain: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification>
+    
+    Range: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Hotel>
+    
+    
+ObjectProperty: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#on>
+
+    Domain: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#ActivitiesRequest>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Activity>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Hotel>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#HotelRequest>
+    
+    Range: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#City>
+    
+    
+ObjectProperty: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#origin>
+
+    Annotations: 
+        rdfs:comment "Relation of the trip or flight and its origin"
+    
+    DisjointWith: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#destination>
+    
+    Domain: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Flight>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#FlightRequest>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripRequest>
+    
+    Range: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#City>
+    
+    
+ObjectProperty: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#outboundFlight>
+
+    Annotations: 
+        rdfs:comment "Represents the the relation of a TripPlanification and the flght to go to the destination."
+    
+    SubPropertyOf: 
+        owl:topObjectProperty
+    
+    Domain: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification>
+    
+    Range: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Flight>
+    
+    
+ObjectProperty: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#result>
+
+    Domain: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripRequest>
+    
+    Range: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification>
+    
+    
+ObjectProperty: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#returnFlight>
+
+    Annotations: 
+        rdfs:comment "Represents the the relation of a TripPlanification and the flght to return to the origin city"
+    
+    SubPropertyOf: 
+        owl:topObjectProperty
+    
+    Domain: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification>
+    
+    Range: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Flight>
+    
+    
+ObjectProperty: owl:topObjectProperty
+
+    
+DataProperty: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#budget>
+
+    Annotations: 
+        rdfs:comment "Float value that represents the budget the user has allocated for the trip. The total cost of the trip should not be higher than this value."
+    
+    Domain: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripRequest>
+    
+    Range: 
+        xsd:float
+    
+    SubPropertyOf: 
+        owl:topDataProperty
+    
+    
+DataProperty: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#code>
+
+    Domain: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#City>
+    
+    SubPropertyOf: 
+        owl:topDataProperty
+    
+    
+DataProperty: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#cultural>
+
+    Annotations: 
+        rdfs:comment "Integer that is set as true if the activity is cultural and to false if it is not cultural. It does also represent the user's preferences."
+    
+    Domain: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#ActivitiesRequest>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Activity>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification>
+    
+    Range: 
+        xsd:int
+    
+    SubPropertyOf: 
+        owl:topDataProperty
+    
+    
+DataProperty: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#date>
+
+    Annotations: 
+        rdfs:comment "Date of when an activity takes places or of a flight"
+    
+    Domain: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Activity>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Flight>
+    
+    Range: 
+        xsd:dateTime
+    
+    
+DataProperty: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#days>
+
+    Domain: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#HotelRequest>
+    
+    SubPropertyOf: 
+        owl:topDataProperty
+    
+    
+DataProperty: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#duration>
+
+    SubPropertyOf: 
+        owl:topDataProperty
+    
+    
+DataProperty: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#end>
+
+    Annotations: 
+        rdfs:comment "End date of a trip"
+    
+    Domain: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripRequest>
+    
+    Range: 
+        xsd:dateTime
+    
+    SubPropertyOf: 
+        owl:topDataProperty
+    
+    
+DataProperty: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#festive>
+
+    Annotations: 
+        rdfs:comment "Integer that is set as true if the activity is festive and to false if it is not festive. It does also represent the user's preferences."
+    
+    Domain: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#ActivitiesRequest>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Activity>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification>
+    
+    Range: 
+        xsd:int
+    
+    SubPropertyOf: 
+        owl:topDataProperty
+    
+    
+DataProperty: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#id>
+
+    Annotations: 
+        rdfs:comment "Identifier"
+    
+    Domain: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Flight>
+    
+    
+DataProperty: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#location>
+
+    Annotations: 
+        rdfs:comment "Location of an hotel. It can either be set to \"Centre\" or \"No centre\" depending on whether the hotel is close to the city center or not."
+    
+    Domain: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Hotel>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#HotelRequest>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification>
+    
+    Range: 
+        rdfs:Literal
+    
+    SubPropertyOf: 
+        owl:topDataProperty
+    
+    
+DataProperty: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#maxPrice>
+
+    Domain: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#FlightRequest>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#HotelRequest>
+    
+    SubPropertyOf: 
+        owl:topDataProperty
+    
+    
+DataProperty: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#minPrice>
+
+    Domain: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#FlightRequest>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#HotelRequest>
+    
+    SubPropertyOf: 
+        owl:topDataProperty
+    
+    
+DataProperty: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#name>
+
+    Annotations: 
+        rdfs:comment "Name of an hotel, city or user. Useful for writing the object on the screen."
+    
+    Domain: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Activity>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#City>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Hotel>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#User>
+    
+    Range: 
+        xsd:string
+    
+    SubPropertyOf: 
+        owl:topDataProperty
+    
+    
+DataProperty: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#playful>
+
+    Annotations: 
+        rdfs:comment "Integer that is set as true if the activity is playful and to false if it is not playful. It does also represent the user's preferences."
+    
+    Domain: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#ActivitiesRequest>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Activity>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification>
+    
+    Range: 
+        xsd:integer
+    
+    SubPropertyOf: 
+        owl:topDataProperty
+    
+    
+DataProperty: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#price>
+
+    Annotations: 
+        rdfs:comment "Price of an hotel, activity or flight."
+    
+    Domain: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Activity>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Flight>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Hotel>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification>
+    
+    Range: 
+        xsd:float
+    
+    
+DataProperty: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#priceLevel>
+
+    Domain: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#ActivitiesRequest>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Activity>
+    
+    SubPropertyOf: 
+        owl:topDataProperty
+    
+    
+DataProperty: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#schedule>
+
+    Domain: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Activity>
+    
+    SubPropertyOf: 
+        owl:topDataProperty
+    
+    
+DataProperty: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#start>
+
+    Annotations: 
+        rdfs:comment "Start date of a trip"
+    
+    Domain: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification>,
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripRequest>
+    
+    Range: 
+        xsd:dateTime
+    
+    SubPropertyOf: 
+        owl:topDataProperty
+    
+    
+DataProperty: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#type>
+
+    SubPropertyOf: 
+        owl:topDataProperty
+    
+    
+DataProperty: owl:topDataProperty
+
+    
+Class: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Action>
+
+    
+Class: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#ActivitiesRequest>
+
+    SubClassOf: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Action>
+    
+    
+Class: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Activity>
+
+    
+Class: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#City>
+
+    
+Class: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Flight>
+
+    
+Class: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#FlightRequest>
+
+    SubClassOf: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Action>
+    
+    
+Class: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Hotel>
+
+    
+Class: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#HotelRequest>
+
+    SubClassOf: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Action>
+    
+    
+Class: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification>
+
+    
+Class: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripRequest>
+
+    Annotations: 
+        rdfs:comment "Action that represents a trip request on the TravelServiceAgent"
+    
+    SubClassOf: 
+        <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Action>
+    
+    
+Class: <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#User>
+
+    
+DisjointClasses: 
+    <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Activity>,<http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Flight>,<http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Hotel>
+
+DisjointProperties: 
+    <http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#by>,<http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#destination>,<http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#origin>,<http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#outboundFlight>,<http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#returnFlight>
+

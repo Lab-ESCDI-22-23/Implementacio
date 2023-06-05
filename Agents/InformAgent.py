@@ -26,6 +26,8 @@ from AgentUtil.DSO import DSO
 from AgentUtil.Util import gethostname
 import socket
 
+from datetime import datetime
+
 from AgentUtil.ONTO import ONTO
 
 
@@ -166,6 +168,8 @@ def browser_iface():
         # Build the message and send it
         tripPlanificationGraph = trip_request(user, tripStart, tripEnd, origin, destination, budget, playful, cultural, festive, location)
         
+        
+    
         print("Result recived")
         
         outboundFlight = {}
@@ -186,7 +190,10 @@ def browser_iface():
                 returnFlight['duration'] = tripPlanificationGraph.value(flight, ONTO.duration)
                 returnFlight['date'] = tripPlanificationGraph.value(flight, ONTO.start)
                 
-                
+        startDate = datetime.strptime(outboundFlight['date'], '%Y-%m-%d')
+        endDate = datetime.strptime(returnFlight['date'], '%Y-%m-%d')
+        days = (endDate-startDate).days
+             
         hotel = {}
         if (None, RDF.type, ONTO.Hotel) in tripPlanificationGraph:
             hotelObj = tripPlanificationGraph.value(RDF.type, ONTO.Hotel)
@@ -206,7 +213,21 @@ def browser_iface():
             tempActivity['schedule'] = tripPlanificationGraph.value(acctivity, ONTO.schedule)
             activities.append(tempActivity)
             
-        day
+        morningActivities = []
+        afternoneActivities = []     
+        nightActivities = []   
+        for actividad in activities:
+            horario = actividad['schedule']
+        if 'Mati' in horario.lower():
+            morningActivities.append(actividad)
+        elif 'Tarda' in horario.lower():
+            afternoneActivities.append(actividad)
+        elif 'Nocturna' in horario.lower():
+            nightActivities.append(actividad)
+
+        
+         # Pasar las listas de actividades a la plantilla
+        return render_template('planificacion.html', outboundFlight=outboundFlight, returnFlight=returnFlight, hotel=hotel, actividades_manana=actividades_manana, actividades_tarde=actividades_tarde, actividades_noche=actividades_noche)
         
         return render_template('planification.html', outboundFlight=outboundFlight, returnFlight=returnFlight, hotel=hotel, activities=activities)
 

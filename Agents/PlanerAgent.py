@@ -570,6 +570,7 @@ def build_trip(tripRequestGraph: Graph):
             result.add((subject_actividades, ONTO.schedule, Literal(chosenActivity.get("schedule"), datatype=XSD.string)))
             result.add((tripPlanification, ONTO.planedActivity, subject_actividades))
 
+    result.add((tripPlanification, ONTO.days, Literal(diasViaje)))
     print("Final planificacion")
     print(result.serialize(format="turtle"))
     return result
