@@ -230,11 +230,16 @@ def resolve_request(activitiesRequestGraph: Graph):
     msgdic = get_message_properties(activitiesRequestGraph)
     content = msgdic['content']
 
+
+    for city in activitiesRequestGraph.subjects(RDF.type, ONTO.City):
+        if (content, ONTO.destination, city) in activitiesRequestGraph:
+            destination = activitiesRequestGraph.value(city, ONTO.name)
+
     # Get the date and the max price
     cultural = activitiesRequestGraph.value(subject=content, predicate=ONTO.cultural)
     festive = activitiesRequestGraph.value(subject=content, predicate=ONTO.festive)
     days = activitiesRequestGraph.value(subject=content, predicate=ONTO.days)
-    destination = activitiesRequestGraph.value(subject=content, predicate=ONTO.destination)
+    #destination = activitiesRequestGraph.value(subject=content, predicate=ONTO.destination)
     priceLevel = activitiesRequestGraph.value(subject=content, predicate=ONTO.priceLevel)
     print("Cultural: " + str(cultural))
     print("Festive: " + str(festive))
@@ -417,6 +422,7 @@ def leer_estado_cache():
 
 def activities_seach(ciudad_destino="Barcelona", nivel_precio=2, dias_viaje=0, proporcion_ludico_festiva=0.5, proporcion_cultural=0.5):
 
+        print("ciudad destino: " + ciudad_destino)
         print("nivel precio: " + str(nivel_precio))
         print("dias viaje: " + str(dias_viaje))
         print("Proporcion ludido y festiva: " + str(proporcion_ludico_festiva))
@@ -458,7 +464,11 @@ def activities_seach(ciudad_destino="Barcelona", nivel_precio=2, dias_viaje=0, p
             subject_actividades = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#Activity" + str(actividades_count))
             result.add((subject_actividades, RDF.type, ONTO.Activity))
             result.add((subject_actividades, ONTO.name, Literal(name, datatype=XSD.string)))
-            result.add((subject_actividades, ONTO.price, Literal(price_level, datatype=XSD.integer)))
+            result.add((subject_actividades, ONTO.priceLevel, Literal(price_level, datatype=XSD.integer)))
+            result.add((subject_actividades, ONTO.schedule, Literal(time, datatype=XSD.string)))
+            result.add((subject_actividades, ONTO.type, Literal(tipo, datatype=XSD.string)))
+
+
 
         print("FIN CONSTRUCCION - TODO OK - ENVIANDO GRAFO")
         return result
