@@ -246,6 +246,8 @@ def build_trip(tripRequestGraph: Graph):
     cultural = tripRequestGraph.value(subject=content, predicate=ONTO.cultural)
     festive = tripRequestGraph.value(subject=content, predicate=ONTO.festive)
     budget = tripRequestGraph.value(subject=content, predicate=ONTO.budget)
+    minPrice = tripRequestGraph.value(subject=content, predicate=ONTO.minPrice)
+    maxPrice = tripRequestGraph.value(subject=content, predicate=ONTO.maxPrice)
        
     # Get the origin and the destination
     origin = None
@@ -279,27 +281,33 @@ def build_trip(tripRequestGraph: Graph):
     
     lodgingFlightGraph = Graph()
     returnFlightGraph = Graph()
+    hotelsGraph = Graph()
     lodgingFlightSearch = Process(target=search_flights, args=(origin, destination, startDate, budget, lodgingFlightGraph))
     returnFlightSearch = Process(target=search_flights, args=(destination, origin, endDate, budget, returnFlightGraph))
+    hotelsSearch = Process(target=search_hotels, args=(destination, location, 0, 300))
     lodgingFlightSearch.start()
     returnFlightSearch.start()
-    
+    hotelsSearch.start()
+
     lodgingFlightSearch.join()
     returnFlightSearch.join()
+    hotelsSearch.join()
     
     print(lodgingFlightGraph)
     print(returnFlightGraph)
+    print(hotelsGraph)
     
     tripGraph = Graph()
     
     return tripGraph
 
 
-def search_hotels(city=None, location=None, budget=None):
+def search_hotels(city=None, location=None, minPrice=None, maxPrice=None):
     global mss_cnt
     
     logger.info('Inici Buscar Hotels')
-    
+
+    print("minPrice: " + str(minPrice))
     # Search in the directory for an Hotel agent
     typeResponse = directory_search_message(DSO.HotelsAgent)
     
@@ -315,9 +323,11 @@ def search_hotels(city=None, location=None, budget=None):
     messageGraph.add((hotelsRequestObj, RDF.type, ONTO.HotelRequest))
     
     if city:
-        messageGraph.add((hotelsRequestObj, ONTO.on , URIRef(city)))
-    if budget:
-        messageGraph.add((hotelsRequestObj, ONTO.budget, Literal(budget)))
+        messageGraph.add((hotelsRequestObj, ONTO.destination, Literal(city)))
+    if minPrice:
+        messageGraph.add((hotelsRequestObj, ONTO.minPrice, Literal(minPrice)))
+    if maxPrice:
+        messageGraph.add((hotelsRequestObj, ONTO.maxPrice, Literal(maxPrice)))
     if location:
         messageGraph.add((hotelsRequestObj, ONTO.location, Literal(location)))
     
@@ -325,10 +335,42 @@ def search_hotels(city=None, location=None, budget=None):
     mss_cnt += 1
     
     logger.info('Enviar Buscar Hotels')
-    hotelsResponse = send_message(msg, hotelAgentAddres)
+    hotelsGraph = send_message(msg, hotelAgentAddres)
     logger.info('Rebre Buscar Hotels')
 
-    print("Buscar hoteles fin")
+    hotels_list = []
+    subjects_position = {}
+    pos = 0
+
+    for s, p, o in hotelsGraph:
+        if s not in subjects_position:
+            subjects_position[s] = pos
+            pos += 1
+            hotels_list.append({})
+        if s in subjects_position:
+            hotel = hotels_list[subjects_position[s]]
+            if p == RDF.type:
+                hotel['url'] = s
+            if p == ONTO.id:
+                hotel['id'] = o
+            if p == ONTO.price:
+                hotel['price'] = o
+            if p == ONTO.name:
+                hotel['name'] = o
+            if p == ONTO.location:
+                hotel['location'] = o
+
+
+    # Imprimir flights_list
+    for hotel in hotels_list:
+        print("--- Hotel ---")
+        print("ID:", hotel.get('id'))
+        print("Name:", hotel.get('name'))
+        print("Price/Night:", hotel.get('price'))
+        print("Location:", hotel.get('location'))
+        print("---------------------")
+
+    logger.info('Fi Buscar Hotels')
 
 
 def search_flights(origin, destination, date, budget, flightsGraph):
@@ -424,9 +466,8 @@ def search_activities(city, festive, cultural, playful, budget, start, end):
     messageGraph.add((activitiesRequestObj, RDF.type, ONTO.ActivitiesRequest))
     
     
-     
-    
-    msg = build_message(gmess=messageGraph, perf=ACL.request, sender= TravelServiceAgent.uri, receiver=activitiesAgentUri, content=hotelsRequestObj, msgcnt= mss_cnt)
+
+    msg = build_message(gmess=messageGraph, perf=ACL.request, sender= TravelServiceAgent.uri, receiver=activitiesAgentUri, content=activitiesRequestObj, msgcnt= mss_cnt)
     mss_cnt += 1
     
     logger.info('Search flight')
@@ -462,6 +503,8 @@ def startAndWait(endQueue):
     """
     # Register the Agent
     regResponseGraph = register_message()
+
+    search_hotels(city="Barcelona", location="Céntrico", minPrice=50, maxPrice=400)
 
     # Wait until the 0 arrives to End
     end = False

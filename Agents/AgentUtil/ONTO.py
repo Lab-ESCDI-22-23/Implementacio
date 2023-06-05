@@ -35,10 +35,11 @@ ONTO =  ClosedNamespace(
         'playful',          # Type: Int, Domain: TripRequest, ActivitiesRequest, Activity
         'cultural',         # Type: Int, Domain: TripRequest, ActivitiesRequest, Activity
         'festive',          # Type: Int, Domain: TripRequest, ActivitiesRequest, Activity
-        'location',         # Type: String, Domain: Hotel, HotelRequest || Accepted values: 'Centric' , 'No Centric'
+        'location',         # Type: String, Domain: Hotel, HotelRequest || Accepted values: 'Céntrico' , 'No Céntrico'
         'date',
         'price',   
         'maxPrice',
+        'minPrice',
         'duration',
         'id',         
         
