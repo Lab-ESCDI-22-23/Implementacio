@@ -239,9 +239,9 @@ def resolve_request(flightRequestGraph: Graph):
     destination = None
     for city in flightRequestGraph.subjects(RDF.type, ONTO.City):
         if (content, ONTO.origin, city) in flightRequestGraph:
-            origin = flightRequestGraph.value(city, ONTO.name)
+            origin = flightRequestGraph.value(city, ONTO.code)
         if (content, ONTO.destination, city) in flightRequestGraph:
-            destination = flightRequestGraph.value(city, ONTO.name)
+            destination = flightRequestGraph.value(city, ONTO.code)
     
     return search_flights(origin=origin, destination=destination, date=date, maxPrice=max_price, minPrice=1)
     
@@ -369,7 +369,7 @@ if __name__ == '__main__':
     init.start()
 
     # Starts the server
-    app.run(host=hostname, port=port, debug=True)
+    app.run(host=hostname, port=port)
 
     # Wait unitl the behaviors ends
     init.join()

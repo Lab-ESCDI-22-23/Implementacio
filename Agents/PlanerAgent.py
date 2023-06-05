@@ -11,6 +11,8 @@ Agente que se registra como agente de hoteles y espera peticiones
 from multiprocessing import Process, Queue
 import logging
 import argparse
+from operator import attrgetter
+import socket
 
 from flask import Flask, render_template, request
 from AgentUtil.FlaskServer import shutdown_server
@@ -21,11 +23,13 @@ from AgentUtil.ACLMessages import build_message, send_message, get_message_prope
 from AgentUtil.Agent import Agent
 from rdflib import Graph, Namespace, Literal, XSD, URIRef
 from rdflib.namespace import FOAF, RDF
-import socket
 
 from AgentUtil.ACL import ACL
 from AgentUtil.DSO import DSO
 from AgentUtil.ONTO import ONTO
+
+from datetime import datetime, date
+import random
 
 
 if True:
@@ -58,7 +62,7 @@ if True:
         hostaddr = hostname = socket.gethostname()
 
     print('DS Hostname =', hostaddr)
-    print('DS Hostname =', port)
+    print('DS Port =', port)
 
     if args.dport is None:
         dport = 9000
@@ -121,8 +125,6 @@ def register_message():
     # Build the register message
     gmess.bind('foaf', FOAF)
     gmess.bind('dso', DSO)
-    
-    
     
     reg_obj = agn[TravelServiceAgent.name + '-Register']
     gmess.add((reg_obj, RDF.type, DSO.Register))
@@ -246,6 +248,8 @@ def build_trip(tripRequestGraph: Graph):
     cultural = tripRequestGraph.value(subject=content, predicate=ONTO.cultural)
     festive = tripRequestGraph.value(subject=content, predicate=ONTO.festive)
     budget = tripRequestGraph.value(subject=content, predicate=ONTO.budget)
+    minPrice = tripRequestGraph.value(subject=content, predicate=ONTO.minPrice)
+    maxPrice = tripRequestGraph.value(subject=content, predicate=ONTO.maxPrice)
        
     # Get the origin and the destination
     origin = None
@@ -277,31 +281,195 @@ def build_trip(tripRequestGraph: Graph):
     print("Cultural:", cultural)
     print("Festive:", festive)
     
-    lodgingFlightGraph = Graph()
+    outboundFlightGraph = Graph()
     returnFlightGraph = Graph()
-    lodgingFlightSearch = Process(target=search_flights, args=(origin, destination, startDate, budget, lodgingFlightGraph))
+    outboundFlightSearch = Process(target=search_flights, args=(origin, destination, startDate, budget, outboundFlightGraph))
     returnFlightSearch = Process(target=search_flights, args=(destination, origin, endDate, budget, returnFlightGraph))
-    lodgingFlightSearch.start()
+    
+    outboundFlightSearch.start()
     returnFlightSearch.start()
     
-    lodgingFlightSearch.join()
+    outboundFlightSearch.join()
     returnFlightSearch.join()
+
+
+    hotelsGraph = Graph()
+    hotelsSearch = Process(target=search_hotels, args=(destination, location, budget, hotelsGraph))
+    hotelsSearch.start()
+    hotelsSearch.join()
+     
     
-    print(lodgingFlightGraph)
+    #TODO
+    activitiesGraph = Graph()
+    activitiesSearch = Process(target=search_activities, args=(city, festive, cultural, playful, 1, startDate, endDate, activitiesGraph))
+    activitiesSearch.start()
+    activitiesSearch.join()
+    
+    print(activitiesGraph)
+    print(outboundFlightGraph)
     print(returnFlightGraph)
-    
-    tripGraph = Graph()
-    
-    return tripGraph
+    print(hotelsGraph)
 
+    
+    
+    result = Graph()
+    
+    #Afegim hotel seleccionat
+    subject_hotel= onto.HotelSeleccionat
+    hotelsSortedPrice = sorted(hotelsSearch,key=attrgetter("price"))
+    rangActivitats=0
+    if hotelsSortedPrice[0].get("price")>budget/4:
+        chosenHotel = sorted(hotelsSearch,key=attrgetter("price"))[0]
+        rangActivitats="1"
+    elif hotelsSortedPrice[int(len(hotelsSortedPrice)/2)].get("price")>budget/4:
+        chosenHotel = sorted(hotelsSearch,key=attrgetter("price"))[int(len(hotelsSortedPrice)/4)]
+        rangActivitats="2"
+    else:
+        chosenHotel = sorted(hotelsSearch,key=attrgetter("price"))[random.randrange(0,len(hotelsSortedPrice))]
+        rangActivitats="3"
+    result.add((subject_hotel, RDF.type, ONTO.Hotel))
+    result.add((subject_hotel, ONTO.Price, Literal(chosenHotel.get("price"), datatype=XSD.float)))
+    result.add((subject_hotel, ONTO.Identificador, Literal(chosenHotel.get("id"), datatype=XSD.string)))
+    result.add((subject_hotel, ONTO.Name, Literal(chosenHotel.get("name"), datatype=XSD.string)))
+    result.add((subject_hotel, ONTO.Location, Literal(chosenHotel.get("location"), datatype=XSD.string)))
+    
+    #Afegim vol anada seleccionat
+    subject_lodging_flight= onto.VolAnadaSeleccionat
+    chosenLodgingFlight = sorted(outboundFlightSearch,key=attrgetter("price"))[0]
+    result.add((subject_lodging_flight, RDF.type, ONTO.Hotel))
+    result.add((subject_lodging_flight, ONTO.Price, Literal(chosenLodgingFlight.get("price"), datatype=XSD.float)))
+    result.add((subject_lodging_flight, ONTO.Identificador, Literal(chosenLodgingFlight.get("id"), datatype=XSD.string)))
+    result.add((subject_lodging_flight, ONTO.StartDate, Literal(chosenLodgingFlight.get("startDate"), datatype=XSD.string)))
+    result.add((subject_lodging_flight, ONTO.EndDate, Literal(chosenLodgingFlight.get("endDate"), datatype=XSD.string)))
+    result.add((subject_lodging_flight, ONTO.Duration, Literal(chosenLodgingFlight.get("duration"), datatype=XSD.string)))
+    
+    #Afegim vol tornada seleccionat
+    subject_return_flight= onto.VolTornadaSeleccionat
+    chosenReturnFlight = sorted(returnFlightSearch,key=attrgetter("price"))[0]
+    result.add((subject_return_flight, RDF.type, ONTO.Hotel))
+    result.add((subject_return_flight, ONTO.Price, Literal(chosenReturnFlight.get("price"), datatype=XSD.float)))
+    result.add((subject_return_flight, ONTO.Identificador, Literal(chosenReturnFlight.get("id"), datatype=XSD.string)))
+    result.add((subject_return_flight, ONTO.StartDate, Literal(chosenReturnFlight.get("startDate"), datatype=XSD.string)))
+    result.add((subject_return_flight, ONTO.EndDate, Literal(chosenReturnFlight.get("endDate"), datatype=XSD.string)))
+    result.add((subject_return_flight, ONTO.Duration, Literal(chosenReturnFlight.get("duration"), datatype=XSD.string)))
+    
+    actividades_count = 0
+    #1 = 1 actividad al dia de mañana o tarde
+    #2 = 1 actividad al dia de mañana o tarde y otra de tanto en tanto de mañana o tarde o noche
+    #3 = 1 actividad al dia de mañana, 1 actividad al dia de tarde y de tanto en tanto 1 actividad de noche
+    
+    actividadesMañanaOcio = [activity for activity in activitiesSearch if "Mati" in activity.get("time") and "Ocio" in activity.get("type") and activity.get("price_level")<=rangActivitats]
+    actividadesTardeOcio = [activity for activity in activitiesSearch if "Tarda" in activity.get("time") and "Ocio" in activity.get("type") and activity.get("price_level")<=rangActivitats]
+    actividadesNocheOcio = [activity for activity in activitiesSearch if "Nocturna" in activity.get("time") and "Ocio" in activity.get("type") and activity.get("price_level")<=rangActivitats]
+    
+    actividadesMañanaCultural = [activity for activity in activitiesSearch if "Mati" in activity.get("time") and "Cultural" in activity.get("type") and activity.get("price_level")<=rangActivitats]
+    actividadesTardeCultural = [activity for activity in activitiesSearch if "Tarda" in activity.get("time") and "Cultural" in activity.get("type") and activity.get("price_level")<=rangActivitats]
+    actividadesNocheCultural = [activity for activity in activitiesSearch if "Nocturna" in activity.get("time") and "Cultural" in activity.get("type") and activity.get("price_level")<=rangActivitats]
+    
+    numeroOcio=0
+    numeroCultural=0
+    
+    cargaActividades=1 
+    diasViaje = 5
+    for dia in range(0,diasViaje):
+        actividades_count += 1
+        if cargaActividades == 1:
+            if numeroOcio/playful <= numeroCultural/cultural:
+                chosenActivity = (actividadesMañanaOcio+actividadesTardeOcio)[random.randrange(0,len((actividadesMañanaOcio+actividadesTardeOcio)))]
+                numeroOcio+=1
+            else:
+                chosenActivity = (actividadesMañanaCultural+actividadesTardeCultural)[random.randrange(0,len((actividadesMañanaCultural+actividadesTardeCultural)))]
+                numeroCultural+=1
+            subject_actividades = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#ActividadSeleccionada" + str(actividades_count))
+            result.add((subject_actividades, RDF.type, ONTO.Actividad))
+            result.add((subject_actividades, ONTO.Name, Literal(chosenActivity.get("name"), datatype=XSD.string)))
+            result.add((subject_actividades, ONTO.PriceLevel, Literal(chosenActivity.get("priceLevel"), datatype=XSD.integer)))
+            result.add((subject_actividades, ONTO.Type, Literal(chosenActivity.get("type"), datatype=XSD.string)))
+            result.add((subject_actividades, ONTO.Schedule, Literal(chosenActivity.get("schedule"), datatype=XSD.string)))
+        elif cargaActividades==2:
+            if numeroOcio/playful <= numeroCultural/cultural:
+                chosenActivity = (actividadesMañanaOcio)[random.randrange(0,len((actividadesMañanaOcio)))]
+                numeroOcio+=1
+            else:
+                chosenActivity = (actividadesMañanaCultural)[random.randrange(0,len((actividadesMañanaCultural)))]
+                numeroCultural+=1
+            subject_actividades = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#ActividadSeleccionada" + str(actividades_count))
+            result.add((subject_actividades, RDF.type, ONTO.Actividad))
+            result.add((subject_actividades, ONTO.Name, Literal(chosenActivity.get("name"), datatype=XSD.string)))
+            result.add((subject_actividades, ONTO.PriceLevel, Literal(chosenActivity.get("priceLevel"), datatype=XSD.integer)))
+            result.add((subject_actividades, ONTO.Type, Literal(chosenActivity.get("type"), datatype=XSD.string)))
+            result.add((subject_actividades, ONTO.Schedule, Literal(chosenActivity.get("schedule"), datatype=XSD.string)))
+            actividades_count+=1
+                
+            if numeroOcio/playful <= numeroCultural/cultural:
+                chosenActivity = (actividadesTardeOcio)[random.randrange(0,len((actividadesTardeOcio)))]
+                numeroOcio+=1
+            else:
+                chosenActivity = (actividadesTardeCultural)[random.randrange(0,len((actividadesTardeCultural)))]
+                numeroCultural+=1
+                
+            subject_actividades = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#ActividadSeleccionada" + str(actividades_count))
+            result.add((subject_actividades, RDF.type, ONTO.Actividad))
+            result.add((subject_actividades, ONTO.Name, Literal(chosenActivity.get("name"), datatype=XSD.string)))
+            result.add((subject_actividades, ONTO.PriceLevel, Literal(chosenActivity.get("priceLevel"), datatype=XSD.integer)))
+            result.add((subject_actividades, ONTO.Type, Literal(chosenActivity.get("type"), datatype=XSD.string)))
+            result.add((subject_actividades, ONTO.Schedule, Literal(chosenActivity.get("schedule"), datatype=XSD.string)))
+            
+        else:
+            if numeroOcio/playful <= numeroCultural/cultural:
+                chosenActivity = (actividadesMañanaOcio)[random.randrange(0,len((actividadesMañanaOcio)))]
+                numeroOcio+=1
+            else:
+                chosenActivity = (actividadesMañanaCultural)[random.randrange(0,len((actividadesMañanaCultural)))]
+                numeroCultural+=1
+            subject_actividades = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#ActividadSeleccionada" + str(actividades_count))
+            result.add((subject_actividades, RDF.type, ONTO.Actividad))
+            result.add((subject_actividades, ONTO.Name, Literal(chosenActivity.get("name"), datatype=XSD.string)))
+            result.add((subject_actividades, ONTO.PriceLevel, Literal(chosenActivity.get("priceLevel"), datatype=XSD.integer)))
+            result.add((subject_actividades, ONTO.Type, Literal(chosenActivity.get("type"), datatype=XSD.string)))
+            result.add((subject_actividades, ONTO.Schedule, Literal(chosenActivity.get("schedule"), datatype=XSD.string)))
+            actividades_count+=1
+                
+            if numeroOcio/playful <= numeroCultural/cultural:
+                chosenActivity = (actividadesTardeOcio)[random.randrange(0,len((actividadesTardeOcio)))]
+                numeroOcio+=1
+            else:
+                chosenActivity = (actividadesTardeCultural)[random.randrange(0,len((actividadesTardeCultural)))]
+                numeroCultural+=1
+                
+            subject_actividades = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#ActividadSeleccionada" + str(actividades_count))
+            result.add((subject_actividades, RDF.type, ONTO.Actividad))
+            result.add((subject_actividades, ONTO.Name, Literal(chosenActivity.get("name"), datatype=XSD.string)))
+            result.add((subject_actividades, ONTO.PriceLevel, Literal(chosenActivity.get("priceLevel"), datatype=XSD.integer)))
+            result.add((subject_actividades, ONTO.Type, Literal(chosenActivity.get("type"), datatype=XSD.string)))
+            result.add((subject_actividades, ONTO.Schedule, Literal(chosenActivity.get("schedule"), datatype=XSD.string)))
+            
+            if numeroOcio/playful <= numeroCultural/cultural:
+                chosenActivity = (actividadesNocheOcio)[random.randrange(0,len((actividadesNocheOcio)))]
+                numeroOcio+=1
+            else:
+                chosenActivity = (actividadesNocheCultural)[random.randrange(0,len((actividadesNocheCultural)))]
+                numeroCultural+=1
+                
+            subject_actividades = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#ActividadSeleccionada" + str(actividades_count))
+            result.add((subject_actividades, RDF.type, ONTO.Actividad))
+            result.add((subject_actividades, ONTO.Name, Literal(chosenActivity.get("name"), datatype=XSD.string)))
+            result.add((subject_actividades, ONTO.PriceLevel, Literal(chosenActivity.get("priceLevel"), datatype=XSD.integer)))
+            result.add((subject_actividades, ONTO.Type, Literal(chosenActivity.get("type"), datatype=XSD.string)))
+            result.add((subject_actividades, ONTO.Schedule, Literal(chosenActivity.get("schedule"), datatype=XSD.string)))
+    
+    return result
 
-def search_hotels(city=None, location=None, budget=None):
+def search_hotels(city, location, budget, hotelsGraph):
+
     global mss_cnt
     
     logger.info('Inici Buscar Hotels')
-    
+
+    print("minPrice: " + str(1))
     # Search in the directory for an Hotel agent
     typeResponse = directory_search_message(DSO.HotelsAgent)
+    
     
     responseGraph = typeResponse.value(predicate=RDF.type, object=ACL.FipaAclMessage)
     content = typeResponse.value(subject=responseGraph, predicate=ACL.content)
@@ -314,10 +482,18 @@ def search_hotels(city=None, location=None, budget=None):
     
     messageGraph.add((hotelsRequestObj, RDF.type, ONTO.HotelRequest))
     
-    if city:
-        messageGraph.add((hotelsRequestObj, ONTO.on , URIRef(city)))
-    if budget:
-        messageGraph.add((hotelsRequestObj, ONTO.budget, Literal(budget)))
+    # Add the city
+    dest = onto[city]
+    messageGraph.add((dest, RDF.type, ONTO.City))
+    messageGraph.add((dest, ONTO.name, Literal(city)))
+    messageGraph.add((hotelsRequestObj, ONTO.destination, dest))
+    
+    minPrice = 1
+    maxPrice = budget
+    if minPrice:
+        messageGraph.add((hotelsRequestObj, ONTO.minPrice, Literal(minPrice)))
+    if maxPrice:
+        messageGraph.add((hotelsRequestObj, ONTO.maxPrice, Literal(maxPrice)))
     if location:
         messageGraph.add((hotelsRequestObj, ONTO.location, Literal(location)))
     
@@ -325,11 +501,45 @@ def search_hotels(city=None, location=None, budget=None):
     mss_cnt += 1
     
     logger.info('Enviar Buscar Hotels')
-    hotelsResponse = send_message(msg, hotelAgentAddres)
+    hotelsGraph = send_message(msg, hotelAgentAddres)
     logger.info('Rebre Buscar Hotels')
+    
+    hotels_list = []
+    subjects_position = {}
+    pos = 0
+    
+    for s, p, o in hotelsGraph:
+        if s not in subjects_position:
+            subjects_position[s] = pos
+            pos += 1
+            hotels_list.append({})
+        if s in subjects_position:
+            hotel = hotels_list[subjects_position[s]]
+            if p == RDF.type:
+                hotel['url'] = s
+            if p == ONTO.id:
+                hotel['id'] = o
+            if p == ONTO.name:
+                hotel['name'] = o
+            if p == ONTO.city:
+                hotel['city'] = o
+            if p == ONTO.price:
+                hotel['price'] = o
+            if p == ONTO.location:
+                hotel["location"] = o
 
-    print("Buscar hoteles fin")
-
+    # Imprimir hotels_list
+    for hotel in hotels_list:
+        print("--- Hotel ---")
+        print("ID:", hotel.get('id'))
+        print("Nom:", hotel.get('name'))
+        print("Ciutat:", hotel.get('city'))
+        print("Preu:", hotel.get('price'))
+        print("Localitzacio:", hotel.get('location'))
+        print("---------------------")
+    logger.info('Fi Buscar hotels')
+    
+    return hotels_list
 
 def search_flights(origin, destination, date, budget, flightsGraph):
     global mss_cnt
@@ -357,9 +567,30 @@ def search_flights(origin, destination, date, budget, flightsGraph):
     dest = onto[destination]
     messageGraph.add((ori, RDF.type, ONTO.City))
     messageGraph.add((ori, ONTO.name, Literal(origin)))
+    if str(origin) == "Barcelona":
+        messageGraph.add((ori, ONTO.code, Literal("BCN")))
+        print("BCN")
+    elif str(origin) == "London":
+        messageGraph.add((ori, ONTO.code, Literal("LON")))
+        print("LON")
+    elif str(origin) == "Madrid":
+        messageGraph.add((ori, ONTO.code, Literal("MAD")))
+        print("MAD")
+    else:
+        print("no equal")
     messageGraph.add((dest, RDF.type, ONTO.City))
     messageGraph.add((dest, ONTO.name, Literal(destination)))
-    
+    if str(destination) == "Barcelona":
+        messageGraph.add((dest, ONTO.code, Literal("BCN")))
+        print("BCN")
+    elif str(destination) == "London":
+        messageGraph.add((dest, ONTO.code, Literal("LON")))
+        print("LON")
+    elif str(destination) == "Madrid":
+        messageGraph.add((dest, ONTO.code, Literal("MAD")))
+        print("MAD")
+    else:
+        print("no equal")
     messageGraph.add((flightRequestObj, ONTO.origin, ori))
     messageGraph.add((flightRequestObj, ONTO.destination, dest))
     
@@ -406,10 +637,12 @@ def search_flights(origin, destination, date, budget, flightsGraph):
 
     logger.info('Fi Buscar Vols')
     
-def search_activities(city, festive, cultural, playful, budget, start, end):
+    return flights_list
+    
+def search_activities(city, festive, cultural, playful, priceLevel, start, end, activitiesGraph):
     global mss_cnt
     
-    # Search in the directory for an Hotel agent
+    # Search in the directory for an Activities agent
     typeResponse = directory_search_message(DSO.ActivitiesAgent)
     
     responseGraph = typeResponse.value(predicate=RDF.type, object=ACL.FipaAclMessage)
@@ -418,21 +651,80 @@ def search_activities(city, festive, cultural, playful, budget, start, end):
     activitiesAgentUri = typeResponse.value(subject=content, predicate=DSO.Uri)
 
     messageGraph = Graph()
-
-    activitiesRequestObj = onto['ActivitiesRequest_' + str(mss_cnt)]
     
+    activitiesRequestObj = onto['ActivitiesRequest_' + str(mss_cnt)]
     messageGraph.add((activitiesRequestObj, RDF.type, ONTO.ActivitiesRequest))
     
+    # Add the city
+    dest = onto[city]
+    messageGraph.add((dest, RDF.type, ONTO.City))
+    messageGraph.add((dest, ONTO.name, Literal(city)))
+    messageGraph.add((activitiesRequestObj, ONTO.destination, dest))
+
+    # Add the days
+    # TODO: calculate the days
+    startDate = datetime.datetime.strptime(start, '%Y-%m-%d')
+    endDate = datetime.datetime.strptime(end, '%Y-%m-%d')
+    days = (endDate-startDate).days
+    messageGraph.add((activitiesRequestObj, ONTO.days, Literal(str(days))))
     
-     
+    # Add the price level
+    # TODO: calculate the price level
+    messageGraph.add((activitiesRequestObj, ONTO.priceLevel, Literal(priceLevel)))
     
-    msg = build_message(gmess=messageGraph, perf=ACL.request, sender= TravelServiceAgent.uri, receiver=activitiesAgentUri, content=hotelsRequestObj, msgcnt= mss_cnt)
+    # Add cultural-festive
+    # TODO: calculate precentages
+    culturalPercentage = cultural/10
+    festivePrecentage = festive/10
+    messageGraph.add((activitiesRequestObj, ONTO.cultural, Literal(culturalPercentage)))
+    messageGraph.add((activitiesRequestObj, ONTO.festive, Literal(festivePrecentage)))
+    
+    
+    msg = build_message(gmess=messageGraph, perf=ACL.request, sender= TravelServiceAgent.uri, receiver=activitiesAgentUri, content=activitiesRequestObj, msgcnt= mss_cnt)
+
     mss_cnt += 1
     
-    logger.info('Search flight')
-    flightResponse = send_message(msg, activitiesAgentAddres)
-    logger.info('Recive flights')
+    logger.info('Search activities')
+    activitiesGraph = send_message(msg, activitiesAgentAddres)
+    logger.info('Recive activities')
+    
+    activities_list = []
+    subjects_position = {}
+    pos = 0
+    
+    for s, p, o in activitiesGraph:
+        if s not in subjects_position:
+            subjects_position[s] = pos
+            pos += 1
+            activities_list.append({})
+        if s in subjects_position:
+            activity = activities_list[subjects_position[s]]
+            if p == RDF.type:
+                activity['url'] = s
+            if p == ONTO.id:
+                activity['id'] = o
+            if p == ONTO.Name:
+                activity['name'] = o
+            if p == ONTO.PriceLevel:
+                activity['priceLevel'] = o
+            if p == ONTO.Type:
+                activity['type'] = o
+            if p == ONTO.Schedule:
+                activity["schedule"] = o
 
+    # Imprimir flights_list
+    for activity in activities_list:
+        print("--- Hotel ---")
+        print("ID:", activity.get('id'))
+        print("Nom:", activity.get('name'))
+        print("Nivell de preu:", activity.get('priceLevel'))
+        print("Tipus:", activity.get('type'))
+        print("Schedule:", activity.get('schedule'))
+        print("---------------------")
+
+    logger.info('Fi Buscar hotels')
+    
+    return activities_list
 
 # --------------- Functions to keep the server runing ---------------
 @app.route("/stop")
@@ -463,6 +755,8 @@ def startAndWait(endQueue):
     # Register the Agent
     regResponseGraph = register_message()
 
+    #search_hotels(city="Barcelona", location="Céntrico", minPrice=50, maxPrice=400)
+
     # Wait until the 0 arrives to End
     end = False
     while not end:
@@ -482,7 +776,7 @@ if __name__ == '__main__':
     
 
     # Starts the server
-    app.run(host=hostname, port=port, debug=True)
+    app.run(host=hostname, port=port)
 
     # Wait unitl the behaviors ends
     init.join()

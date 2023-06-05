@@ -14,40 +14,30 @@ Asume que el agente de registro esta en el puerto 9000
 @author: javier
 """
 from amadeus import Client, ResponseError
-import sys
-from rdflib import Graph, Literal, RDF, URIRef, XSD
+
 from multiprocessing import Process, Queue
-import socket
-from flask import Flask, request
-from rdflib import Namespace, Graph, Dataset
-from pyparsing import Literal
-from AgentUtil.FlaskServer import shutdown_server
-from AgentUtil.Agent import Agent
-from AgentUtil.OntoNamespaces import ONTO
-from AgentUtil.ACLMessages import *
-
-
-
-from multiprocessing import Process
 import logging
 import argparse
+import sys
+import socket
 
 from flask import Flask, render_template, request
-from rdflib import Graph, Namespace
-from rdflib.namespace import FOAF, RDF
-from rdflib import XSD, Namespace, Literal, URIRef
-from AgentUtil.ACL import ACL
-from AgentUtil.DSO import DSO
 from AgentUtil.FlaskServer import shutdown_server
-from AgentUtil.ACLMessages import build_message, send_message
-from AgentUtil.Agent import Agent
 from AgentUtil.Logging import config_logger
 from AgentUtil.Util import gethostname
-import socket
+
+from AgentUtil.ACLMessages import *
+from AgentUtil.Agent import Agent
+from rdflib import Graph, Literal, RDF, URIRef, XSD, Namespace, Dataset
+from rdflib.namespace import FOAF, RDF
+
+from AgentUtil.ACL import ACL
+from AgentUtil.DSO import DSO
+from AgentUtil.ONTO import ONTO
 
 
 FUSEKI_ENDPOINT = 'http://localhost:3030/MC_activitats'
-MC_PRESENCE = ""
+
 CACHE_FILE = "./Data/cache_activitats"
 
 
@@ -82,7 +72,9 @@ if True:
     else:
         hostaddr = hostname = socket.gethostname()
 
-    print('DS Hostname =', hostaddr)
+    print('DS Hostaddres =', hostaddr)
+    print('DS Hostname =', hostname)
+    print('DS Port =', port)
 
     if args.dport is None:
         dport = 9000
@@ -102,6 +94,7 @@ if True:
 
 
 agn = Namespace("http://www.agentes.org#")
+onto = Namespace("http://www.owl-ontologies.com/OntologiaECSDI.owl#")
 
 # Contador de mensajes
 mss_cnt = 0
@@ -109,22 +102,24 @@ mss_cnt = 0
 CACHE_FILE = "./Data/cache_activitats"
 
 # Datos del Agente
-AgenteActividades = Agent('AgenteActividades',
-                       agn.AgentSimple,
-                       'http://%s:%d/comm' % (hostname, port),
-                       'http://%s:%d/Stop' % (hostname, port))
+ActivitiesAgent = Agent('ActivitiesAgent',
+                       agn.ActivitiesAgent,
+                       'http://%s:%d/comm' % (hostaddr, port),
+                       'http://%s:%d/Stop' % (hostaddr, port))
 
 # Directory agent address
 DirectoryAgent = Agent('DirectoryAgent',
-                       agn.Directory,
-                       'http://%s:9000/Register' % hostname,
-                       'http://%s:9000/Stop' % hostname)
+                    agn.Directory,
+                    'http://%s:%d/Register' % (dhostname, dport),
+                    'http://%s:%d/Stop' % (dhostname, dport))
 
 # Global triplestore graph
 dsgraph = Graph()
 
 cola1 = Queue()
 
+# Queue that waits for a 0 to end the agent
+endQueue = Queue()
 
 
 def get_count():
@@ -132,29 +127,65 @@ def get_count():
     mss_cnt += 1
     return mss_cnt
 
+def register_message():
+    """
+    Envia un mensaje de registro al servicio de registro
+    usando una performativa Request y una accion Register del
+    servicio de directorio
+
+    :param gmess:
+    :return:
+    """
+
+    logger.info('Register the Agent')
+
+    global mss_cnt
+
+    gmess = Graph()
+
+    # Build the register message
+    gmess.bind('foaf', FOAF)
+    gmess.bind('dso', DSO)
+
+    reg_obj = agn[ActivitiesAgent.name + '-Register']
+    gmess.add((reg_obj, RDF.type, DSO.Register))
+    gmess.add((reg_obj, DSO.Uri, ActivitiesAgent.uri))
+    gmess.add((reg_obj, FOAF.name, Literal(ActivitiesAgent.name)))
+    gmess.add((reg_obj, DSO.Address, Literal(ActivitiesAgent.address)))
+    gmess.add((reg_obj, DSO.AgentType, DSO.ActivitiesAgent))
+
+    # Lo metemos en un envoltorio FIPA-ACL y lo enviamos
+    gr = send_message(
+        build_message(gmess, perf=ACL.request,
+                      sender=ActivitiesAgent.uri,
+                      receiver=DirectoryAgent.uri,
+                      content=reg_obj,
+                      msgcnt=mss_cnt),
+        DirectoryAgent.address)
+    mss_cnt += 1
+
+    return gr
+
+
 @app.route("/comm")
 def comunicacion():
     """
     Entrypoint de comunicacion
     """
-
     print('Peticion de informacion recibida')
 
     global dsgraph
     message = request.args['content']
-    print('El mensaje 1')
     gm = Graph()
-    print('El mensaje 1.2')
-    print(message)
     gm.parse(data=message, format='xml')
-    print('El mensaje 2')
     msgdic = get_message_properties(gm)
+    
     gr = None
 
     if msgdic is None:
         # Si no es, respondemos que no hemos entendido el mensaje
         print('Mensaje no entendido')
-        gr = build_message(Graph(), ACL['not-understood'], sender=AgenteActividades.uri, msgcnt=get_count())
+        gr = build_message(Graph(), ACL['not-understood'], sender=ActivitiesAgent.uri, msgcnt=get_count())
 
 
     else:
@@ -164,49 +195,53 @@ def comunicacion():
             # Si no es un request, respondemos que no hemos entendido el mensaje
             gr = build_message(Graph(),
                                ACL['not-understood'],
-                               sender=AgenteActividades.uri,
+                               sender=ActivitiesAgent.uri,
                                msgcnt=get_count())
 
         else:
-            # Extraemos el objeto del contenido que ha de ser una accion de la ontologia
-            # de registro
-            print('Mensaje puede ser accion de onto')
+            # Get the action of the request
             content = msgdic['content']
             # Averiguamos el tipo de la accion
             accion = gm.value(subject=content, predicate=RDF.type)
 
-            # Accion de buscar productos
-            if accion == ONTO.BuscarActividades:
-                print("Works here")
-                restriccions = gm.objects(content, ONTO.RestringidaPor)
-                restriccions_dict = {}
-                # Per totes les restriccions que tenim en la cerca d'hotels
-                for restriccio in restriccions:
-                    if gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionNivelCarga:
-                        ciudad_destino = gm.value(subject=restriccio, predicate=ONTO.CiudadDestino)
-                        print('BÚSQUEDA->Restriccion de ciudad destino: ' + ciudad_destino)
-                        restriccions_dict['ciudad_destino'] = ciudad_destino
-
-                    elif gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionNivelPrecio:
-                        nivel_precio = gm.value(subject=restriccio, predicate=ONTO.NivelPrecio)
-                        print('BÚSQUEDA->Restriccion de nivel de precio:' + nivel_precio)
-                        restriccions_dict['nivel_precio'] = nivel_precio
-
-
-                    elif gm.value(subject=restriccio, predicate=RDF.type) == ONTO.RestriccionProporcionActividades:
-                        proporcion_ludico_festiva = gm.value(subject=restriccio, predicate=ONTO.ProporcionLudicoFestiva)
-                        proporcion_cultural = gm.value(subject=restriccio, predicate=ONTO.ProporcionCultural)
-
-
-                        print('BÚSQUEDA->Restriccion de proporcion ludica y festiva: ' + proporcion_ludico_festiva)
-                        print('BÚSQUEDA->Restriccion de proporcion cultural: ' + proporcion_cultural)
-                        restriccions_dict['proporcion_ludico_festiva'] = proporcion_ludico_festiva
-                        restriccions_dict['proporcion_cultural'] = proporcion_cultural
-
-
-                gr = buscar_actividades(**restriccions_dict)
+            # Activities Request
+            if accion == ONTO.ActivitiesRequest:
+                logger.info("Activities request recived")
+                
+                messageGraph = resolve_request(gm)
+                
+                gr = build_message(messageGraph,
+                                    ACL['inform'],
+                                    sender=ActivitiesAgent.uri,
+                                    msgcnt=get_count())
+            else:
+                print('Accio no reconeguda')
+                gr = build_message(Graph(),
+                                    ACL['not-understood'],
+                                    sender=ActivitiesAgent.uri,
+                                    msgcnt=get_count())
 
     return gr.serialize(format='xml'), 200
+
+def resolve_request(activitiesRequestGraph: Graph):
+    """
+    Given the request graph, extracts the information and makes the request
+    """
+    msgdic = get_message_properties(activitiesRequestGraph)
+    content = msgdic['content']
+
+    # Get the date and the max price
+    cultural = activitiesRequestGraph.value(subject=content, predicate=ONTO.cultural)
+    festive = activitiesRequestGraph.value(subject=content, predicate=ONTO.festive)
+    days = activitiesRequestGraph.value(subject=content, predicate=ONTO.days)
+    destination = activitiesRequestGraph.value(subject=content, predicate=ONTO.destination)
+    priceLevel = activitiesRequestGraph.value(subject=content, predicate=ONTO.priceLevel)
+    print("Cultural: " + str(cultural))
+    print("Festive: " + str(festive))
+    print("Destination: " + str(destination))
+    print("Days: " + str(days))
+    
+    return activities_seach(ciudad_destino=destination, nivel_precio=priceLevel, dias_viaje=days, proporcion_ludico_festiva=festive, proporcion_cultural=cultural)
 
 
 def buscar_actividades_festivas(ciudad="Barcelona"):
@@ -325,8 +360,6 @@ def guardar_cache(cache, ciudad_destino=""):
 
 
 def leer_cache(proporcion_ludico_festiva=0.5, proporcion_cultural=0.5):
-    g = Graph()
-
 
     # Consulta SPARQL para obtener los datos del grafo en Fuseki
     query = """
@@ -382,8 +415,7 @@ def leer_estado_cache():
     with open(CACHE_FILE, "r") as file:
         return file.readline().strip()
 
-
-def buscar_actividades(ciudad_destino="Barcelona", nivel_precio=2, dias_viaje=0, proporcion_ludico_festiva=0.5, proporcion_cultural=0.5):
+def activities_seach(ciudad_destino="Barcelona", nivel_precio=2, dias_viaje=0, proporcion_ludico_festiva=0.5, proporcion_cultural=0.5):
 
         print("nivel precio: " + str(nivel_precio))
         print("dias viaje: " + str(dias_viaje))
@@ -431,46 +463,57 @@ def buscar_actividades(ciudad_destino="Barcelona", nivel_precio=2, dias_viaje=0,
         print("FIN CONSTRUCCION - TODO OK - ENVIANDO GRAFO")
         return result
 
-@app.route("/Stop")
+# --------------- Functions to keep the server runing ---------------
+@app.route("/stop")
 def stop():
     """
-    Entrypoint que para el agente
+    Entrypoint to stop the agent
 
     :return:
     """
     tidyup()
     shutdown_server()
-    return "Parando Servidor"
-
+    return "Server Stoped"
 
 def tidyup():
     """
-    Acciones previas a parar el agente
+    Actions before stop the server
 
     """
-    pass
+    global endQueue
+    endQueue.put(0)
 
-
-def agentbehavior1(cola):
+def startAndWait(endQueue):
     """
-    Un comportamiento del agente
+    Starts the Agent and Waits for it to Stops
 
     :return:
     """
+    # Register the Agent
+    regResponseGraph = register_message()
 
-    buscar_actividades("Barcelona", 3, 5, 0, 0.5)
-    pass
+    # Wait until the 0 arrives to End
+    end = False
+    while not end:
+        while endQueue.empty():
+            pass
+        endSignal = endQueue.get()
+        if endSignal == 0:
+            end = True
+        else:
+            print(endSignal)
 
-
+# Starts the agent
 if __name__ == '__main__':
-    # Ponemos en marcha los behaviors
-    ab1 = Process(target=agentbehavior1, args=(cola1,))
-    ab1.start()
+    # Start the first behavior to register and wait
+    init = Process(target=startAndWait, args=(endQueue,))
+    init.start()
+    
 
-    # Ponemos en marcha el servidor
+    # Starts the server
     app.run(host=hostname, port=port)
 
-    # Esperamos a que acaben los behaviors
-    ab1.join()
+    # Wait unitl the behaviors ends
+    init.join()
     print('The End')
 
