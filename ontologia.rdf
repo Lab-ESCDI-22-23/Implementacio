@@ -44,24 +44,24 @@
     
 
 
-    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#in -->
-
-    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#in">
-        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#ActivitiesRequest"/>
-        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Activity"/>
-        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Hotel"/>
-        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#HotelRequest"/>
-        <rdfs:range rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#City"/>
-    </owl:ObjectProperty>
-    
-
-
     <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#lodging -->
 
     <owl:ObjectProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#lodging">
         <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification"/>
         <rdfs:range rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Hotel"/>
         <rdfs:comment>Relation of the TripPlanification and the Hotel where the user will stay during the trip</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#on -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#on">
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#ActivitiesRequest"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Activity"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Hotel"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#HotelRequest"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#City"/>
     </owl:ObjectProperty>
     
 
@@ -124,12 +124,19 @@
 
     <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#budget">
         <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
-        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#FlightRequest"/>
-        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#HotelRequest"/>
         <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripPlanification"/>
         <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripRequest"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
         <rdfs:comment>Float value that represents the budget the user has allocated for the trip. The total cost of the trip should not be higher than this value.</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#code -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#code">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#City"/>
     </owl:DatatypeProperty>
     
 
@@ -154,6 +161,23 @@
         <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Flight"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
         <rdfs:comment>Date of when an activity takes places or of a flight</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#days -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#days">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#HotelRequest"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#duration -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#duration">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
     </owl:DatatypeProperty>
     
 
@@ -205,10 +229,31 @@
     
 
 
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#maxPrice -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#maxPrice">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#FlightRequest"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#HotelRequest"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#minPrice -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#minPrice">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#FlightRequest"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#HotelRequest"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#name -->
 
     <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#name">
         <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Activity"/>
         <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#City"/>
         <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Hotel"/>
         <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#User"/>
@@ -244,6 +289,25 @@
     
 
 
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#priceLevel -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#priceLevel">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#ActivitiesRequest"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Activity"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#schedule -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#schedule">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#Activity"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#start -->
 
     <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#start">
@@ -252,6 +316,14 @@
         <rdfs:domain rdf:resource="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#TripRequest"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
         <rdfs:comment>Start date of a trip</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#type -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/biele/ontologies/2023/5/ecsdi_onto#type">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
     </owl:DatatypeProperty>
     
 

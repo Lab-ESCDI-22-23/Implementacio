@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Planificación de viaje</title>
+</head>
+
+<body>
+    <h1>Detalles del vuelo de ida</h1>
+    <p>ID: {{ outboundFlight['id'] }}</p>
+    <p>Precio: {{ outboundFlight['price'] }}</p>
+    <p>Duración: {{ outboundFlight['duration'] }}</p>
+    <p>Fecha: {{ outboundFlight['date'] }}</p>
+
+    <h1>Detalles del vuelo de regreso</h1>
+    <p>ID: {{ returnFlight['id'] }}</p>
+    <p>Precio: {{ returnFlight['price'] }}</p>
+    <p>Duración: {{ returnFlight['duration'] }}</p>
+    <p>Fecha: {{ returnFlight['date'] }}</p>
+
+    <h1>Detalles del hotel</h1>
+    <p>Nombre: {{ hotel['name'] }}</p>
+    <p>Precio: {{ hotel['price'] }}</p>
+    <p>Ubicación: {{ hotel['location'] }}</p>
+
+    <h1>Actividades</h1>
+    <table>
+        <tr>
+            <th>Nombre</th>
+            <th>Nivel de precio</th>
+            <th>Tipo</th>
+            <th>Horario</th>
+        </tr>
+        {% if activities %} {% for activity in activities %}
+        <tr>
+            <td>{{ activity['name'] }}</td>
+            <td>{{ activity['priceLevel'] }}</td>
+            <td>{{ activity['type'] }}</td>
+            <td>{{ activity['schedule'] }}</td>
+        </tr>
+        {% endfor %} {% endif %}
+    </table>
+</body>
+
+</html>
