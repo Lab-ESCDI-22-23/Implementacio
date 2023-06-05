@@ -34,61 +34,62 @@ from AgentUtil.DSO import DSO
 from AgentUtil.Util import gethostname
 import socket
 
+# Definimos los parametros de la linea de comandos
+parser = argparse.ArgumentParser()
+parser.add_argument('--open', help="Define si el servidor est abierto al exterior o no", action='store_true',
+                    default=False)
+parser.add_argument('--verbose', help="Genera un log de la comunicacion del servidor web", action='store_true',
+                    default=False)
+parser.add_argument('--port', type=int, help="Puerto de comunicacion del agente")
 
-if True:
-    # Definimos los parametros de la linea de comandos
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--open', help="Define si el servidor est abierto al exterior o no", action='store_true',
-                        default=False)
-    parser.add_argument('--verbose', help="Genera un log de la comunicacion del servidor web", action='store_true',
-                            default=False)
-    parser.add_argument('--port', type=int, help="Puerto de comunicacion del agente")
+# Logging
+logger = config_logger(level=1)
 
-    # Logging
-    logger = config_logger(level=1)
+# parsing de los parametros de la linea de comandos
+args = parser.parse_args()
 
-    # parsing de los parametros de la linea de comandos
-    args = parser.parse_args()
+# Configuration stuff
+if args.port is None:
+    port = 9000
+else:
+    port = args.port
 
-    # Configuration stuff
-    if args.port is None:
-        port = 9000
-    else:
-        port = args.port
+if args.open:
+    hostname = '0.0.0.0'
+    hostaddr = gethostname()
+else:
+    hostaddr = hostname = socket.gethostname()
 
-    if args.open:
-        hostname = '0.0.0.0'
-        hostaddr = gethostname()
-    else:
-        hostaddr = hostname = socket.gethostname()
+print('DS Hostname =', hostaddr)
 
-    print('DS Hostname =', hostaddr)
+# Directory Service Graph
+dsgraph = Graph()
 
-    # Directory Service Graph
-    dsgraph = Graph()
+# Vinculamos todos los espacios de nombre a utilizar
+dsgraph.bind('acl', ACL)
+dsgraph.bind('rdf', RDF)
+dsgraph.bind('rdfs', RDFS)
+dsgraph.bind('foaf', FOAF)
+dsgraph.bind('dso', DSO)
 
-    # Vinculamos todos los espacios de nombre a utilizar
-    dsgraph.bind('acl', ACL)
-    dsgraph.bind('rdf', RDF)
-    dsgraph.bind('rdfs', RDFS)
-    dsgraph.bind('foaf', FOAF)
-    dsgraph.bind('dso', DSO)
+agn = Namespace("http://www.agentes.org#")
+DirectoryAgent = Agent('DirectoryAgent',
+                       agn.Directory,
+                       'http://%s:%d/Register' % (hostaddr, port),
+                       'http://%s:%d/Stop' % (hostaddr, port))
+app = Flask(__name__)
 
-    agn = Namespace("http://www.agentes.org#")
-    DirectoryAgent = Agent('DirectoryAgent',
-                        agn.Directory,
-                        'http://%s:%d/Register' % (hostaddr, port),
-                        'http://%s:%d/Stop' % (hostaddr, port))
-    app = Flask(__name__)
+if not args.verbose:
+    log = logging.getLogger('werkzeug')
+    log.setLevel(logging.ERROR)
 
-    if not args.verbose:
-        log = logging.getLogger('werkzeug')
-        log.setLevel(logging.ERROR)
-
-    mss_cnt = 0
+mss_cnt = 0
 
 # Queue that waits for a 0 to end the agent
 endQueue = Queue()
+
+typedic = {}
+typeusedic = {}
 
 
 @app.route("/Register")
@@ -122,6 +123,12 @@ def register():
         dsgraph.add((agn_uri, DSO.Address, agn_add))
         dsgraph.add((agn_uri, DSO.AgentType, agn_type))
 
+        agn_type_str = str(agn_type)  # Convert URIRef to string
+        agentType = agn_type_str.split('#')[-1]  # Extract the specific type after the last '#'
+        typedic[agentType] = typedic.get(agentType, 0) + 1
+        print(agentType)
+        print(typedic)
+
         # Generamos un mensaje de respuesta
         return build_message(Graph(),
                              ACL.confirm,
@@ -143,18 +150,27 @@ def register():
         logger.info('Peticion de busqueda')
 
         agn_type = gm.value(subject=content, predicate=DSO.AgentType)
+        agn_type_str = str(agn_type)  # Convert URIRef to string
+        agentType = agn_type_str.split('#')[-1]  # Extract the specific type after the last '#'
+        logger.info('Tipo: ' + agentType)
         rsearch = dsgraph.triples((None, DSO.AgentType, agn_type))
         agn_uri = None
+        iterador = 0
         for r in rsearch:
-            agn_uri = r[0]
-            agn_add = dsgraph.value(subject=agn_uri, predicate=DSO.Address)
-            gr = Graph()
-            gr.bind('dso', DSO)
-            rsp_obj = agn['Directory-response']
-            gr.add((rsp_obj, DSO.Address, agn_add))
-            gr.add((rsp_obj, DSO.Uri, agn_uri))
+            if iterador >= typeusedic.get(agentType, 0):
+                agn_uri = r[0]
+                agn_add = dsgraph.value(subject=agn_uri, predicate=DSO.Address)
+                gr = Graph()
+                gr.bind('dso', DSO)
+                rsp_obj = agn['Directory-response']
+                gr.add((rsp_obj, DSO.Address, agn_add))
+                gr.add((rsp_obj, DSO.Uri, agn_uri))
+                break
+            else:
+                iterador += 1
 
         if agn_uri == None:
+            logger.info('No encontrado')
             # Si no encontramos nada retornamos un inform sin contenido
             return build_message(Graph(),
                                  ACL.inform,
@@ -162,6 +178,10 @@ def register():
                                  msgcnt=mss_cnt)
 
         else:
+            typeusedic[agentType] = typeusedic.get(agentType, 0) + 1
+            if typeusedic[agentType] == typedic[agentType]:
+                typeusedic[agentType] = 0
+            logger.info('Encontrado')
             return build_message(gr,
                                  ACL.inform,
                                  sender=DirectoryAgent.uri,
@@ -237,6 +257,7 @@ def stop():
     shutdown_server()
     return "Server Stoped"
 
+
 def tidyup():
     """
     Actions before stop the server
@@ -245,10 +266,11 @@ def tidyup():
     global endQueue
     endQueue.put(0)
 
+
 def startAndWait(endQueue):
     """
     Starts the Agent and Waits for it to Stops
-    
+
     :return:
     """
 
@@ -263,6 +285,7 @@ def startAndWait(endQueue):
         else:
             print(endSignal)
 
+
 # Starts the agent
 if __name__ == '__main__':
     # Start the first behavior wait
@@ -270,7 +293,7 @@ if __name__ == '__main__':
     init.start()
 
     # Ponemos en marcha el servidor Flask
-    app.run(host=hostname, port=port)
+    app.run(host=hostname, port=port, debug=True)
 
     init.join()
     logger.info('The End')
