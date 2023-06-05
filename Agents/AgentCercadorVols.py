@@ -305,7 +305,7 @@ def search_flights(origin=None, destination=None, minPrice=1, maxPrice=sys.float
             duracion_vuelo = convertir_duracion_a_minutos(itineraries[0]['duration'])
             # Obtener identificador del vuelo
             id_vuelo = flight_data['id']
-            subject_vuelo = onto["Flight_", id_vuelo] 
+            subject_vuelo = URIRef("Flight_"+ id_vuelo)
 
             print("--- Vuelo ---")
             print("ID:", id_vuelo)
@@ -321,6 +321,9 @@ def search_flights(origin=None, destination=None, minPrice=1, maxPrice=sys.float
             result.add((subject_vuelo, ONTO.end, Literal(fecha_llegada, datatype=XSD.string)))
             result.add((subject_vuelo, ONTO.duration, Literal(duracion_vuelo, datatype=XSD.float)))
 
+        print("GRAF VOLS")
+        print(result.serialize(format="xml"))
+        print("GRAF VOLS FINAL")
         return result
 
 # --------------- Functions to keep the server runing ---------------
