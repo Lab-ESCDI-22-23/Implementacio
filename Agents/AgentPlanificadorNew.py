@@ -106,20 +106,6 @@ DirectoryAgent = Agent('DirectoryAgent',
                        'http://%s:9000/Register' % hostname,
                        'http://%s:9000/Stop' % hostname)
 
-AgenteHotel = Agent('AgenteHotel',
-                    agn.AgenteHotel,
-                    'http://%s:9010/comm' % hostname,
-                    'http://%s:9010/Stop' % hostname)
-
-AgenteVuelos = Agent('AgenteVuelos',
-                     agn.AgenteVuelos,
-                     'http://%s:9012/comm' % hostname,
-                     'http://%s:9012/Stop' % hostname)
-
-AgenteActividades = Agent('AgenteActividades',
-                          agn.AgenteVuelos,
-                          'http://%s:9013/comm' % hostname,
-                          'http://%s:9013/Stop' % hostname)
 
 # Global dsgraph triplestore
 dsgraph = Graph()
@@ -166,6 +152,40 @@ def register_message():
 
     return gr
 
+
+def directory_search_message(type):
+    """
+    Busca en el servicio de registro mandando un
+    mensaje de request con una accion Seach del servicio de directorio
+
+    Podria ser mas adecuado mandar un query-ref y una descripcion de registo
+    con variables
+
+    :param type:
+    :return:
+    """
+    global mss_cnt
+    logger.info('Buscamos en el servicio de registro')
+
+    gmess = Graph()
+
+    gmess.bind('foaf', FOAF)
+    gmess.bind('dso', DSO)
+    reg_obj = agn[AgentePlanficador.name + '-search']
+    gmess.add((reg_obj, RDF.type, DSO.Search))
+    gmess.add((reg_obj, DSO.AgentType, type))
+    # TYPE: TravelServiceAgent-Activitats HotelsAgent-Hotels FlightsAgent-Vols
+
+    msg = build_message(gmess, perf=ACL.request,
+                        sender=AgentePlanficador.uri,
+                        receiver=DirectoryAgent.uri,
+                        content=reg_obj,
+                        msgcnt=mss_cnt)
+    gr = send_message(msg, DirectoryAgent.address)
+    mss_cnt += 1
+    logger.info('Recibimos informacion del agente')
+
+    return gr
 
 # @app.route("/iface", methods=['GET', 'POST'])
 def browser_iface():
@@ -313,6 +333,23 @@ def comunicacion():
 def buscar_hoteles(queue, ciutat_desti=None, preciomin=sys.float_info.min, preciomax=sys.float_info.max, ubicacion=None):
     logger.info('Inici Buscar Hotels')
 
+    #OBTENIR AGENT
+
+    # Buscamos en el directorio
+    # un agente de hoteles
+    gr = directory_search_message(DSO.HotelsAgent)
+
+    logger.info(gr.serialize(format='turtle'))
+
+    # Obtenemos la direccion del agente de la respuesta
+    # No hacemos ninguna comprobacion sobre si es un mensaje valido
+    msg = gr.value(predicate=RDF.type, object=ACL.FipaAclMessage)
+    content = gr.value(subject=msg, predicate=ACL.content)
+    ragn_addr = gr.value(subject=content, predicate=DSO.Address)
+    ragn_uri = gr.value(subject=content, predicate=DSO.Uri)
+
+    # Ahora mandamos un objeto de tipo request mandando una accion de tipo Search
+    # que esta en una supuesta ontologia de acciones de agentes
     global mss_cnt
     g = Graph()
 
@@ -343,12 +380,12 @@ def buscar_hoteles(queue, ciutat_desti=None, preciomin=sys.float_info.min, preci
         g.add((ubiRestriction, ONTO.UbicacionHotel, Literal(ubicacion)))
         g.add((action, ONTO.RestringidaPor, URIRef(ubiRestriction)))
     print("Buscar hoteles v5")
-    msg = build_message(gmess=g, perf=ACL.request, sender=AgentePlanficador.uri, receiver=AgenteHotel.uri,
+    msg = build_message(gmess=g, perf=ACL.request, sender=AgentePlanficador.uri, receiver=ragn_uri,
                         content=action, msgcnt=mss_cnt)
     print("Buscar hoteles v6")
     mss_cnt += 1
     logger.info('Enviar Buscar Hotels')
-    gproducts = send_message(msg, AgenteHotel.address)
+    gproducts = send_message(msg, ragn_addr)
     logger.info('Rebre Buscar Hotels')
 
     print("Buscar hoteles fin")
@@ -396,6 +433,24 @@ def buscar_vuelos(queue, ciutat_origen=None, ciutat_desti=None, preciomin=sys.fl
                   fecha_salida=None):
     logger.info('Inici Buscar Vols')
 
+    #OBTENIR AGENT
+
+    # Buscamos en el directorio
+    # un agente de hoteles
+    gr = directory_search_message(DSO.FlightsAgent)
+
+    logger.info(gr.serialize(format='turtle'))
+
+    # Obtenemos la direccion del agente de la respuesta
+    # No hacemos ninguna comprobacion sobre si es un mensaje valido
+    msg = gr.value(predicate=RDF.type, object=ACL.FipaAclMessage)
+    content = gr.value(subject=msg, predicate=ACL.content)
+    ragn_addr = gr.value(subject=content, predicate=DSO.Address)
+    ragn_uri = gr.value(subject=content, predicate=DSO.Uri)
+
+    # Ahora mandamos un objeto de tipo request mandando una accion de tipo Search
+    # que esta en una supuesta ontologia de acciones de agentes
+
     global mss_cnt
     g = Graph()
 
@@ -435,12 +490,12 @@ def buscar_vuelos(queue, ciutat_origen=None, ciutat_desti=None, preciomin=sys.fl
         g.add((fechaRestriction, ONTO.FechaSalida, Literal(fecha_salida)))
         g.add((action, ONTO.RestringidaPor, URIRef(fechaRestriction)))
     print("Buscar Vuelos v5")
-    msg = build_message(gmess=g, perf=ACL.request, sender=AgentePlanficador.uri, receiver=AgenteVuelos.uri,
+    msg = build_message(gmess=g, perf=ACL.request, sender=AgentePlanficador.uri, receiver=ragn_uri,
                         content=action, msgcnt=mss_cnt)
     print("Buscar Vuelos v6")
     mss_cnt += 1
     logger.info('Enviar Buscar Vols')
-    gproducts = send_message(msg, AgenteVuelos.address)
+    gproducts = send_message(msg, ragn_addr)
     logger.info('Rebre Buscar Vols')
     print("Buscar Vuelos Fin")
 
@@ -471,21 +526,16 @@ def buscar_vuelos(queue, ciutat_origen=None, ciutat_desti=None, preciomin=sys.fl
 
     logger.info('Fi Buscar Vols')
 
-    """
-        # Imprimir flights_list
-        for flight in flights_list:
-            print("--- Vuelo ---")
-            print("ID:", flight.get('id'))
-            print("Fecha llegada:", flight.get('fecha_llegada'))
-            print("Fecha Salida:", flight.get('fecha_salida'))
-            print("Precio:", flight.get('precio'))
-            print("Duracion:", flight.get('duracion'))
-            print("---------------------")
-        """
-    return flights_list
+    # Imprimir flights_list
+    for flight in flights_list:
+        print("--- Vuelo ---")
+        print("ID:", flight.get('id'))
+        print("Fecha llegada:", flight.get('fecha_llegada'))
+        print("Fecha Salida:", flight.get('fecha_salida'))
+        print("Precio:", flight.get('precio'))
+        print("Duracion:", flight.get('duracion'))
+        print("---------------------")
 
-
-    logger.info('Fi Buscar Vols')
     queue.put(flights_list)
     return flights_list
 
@@ -494,6 +544,24 @@ def buscar_actividades(queue, carga_actividades=None, nivel_precio=2, dias_viaje
                        proporcion_cultural=0.5):
     logger.info('Inici Buscar Activitats')
 
+    #OBTENIR AGENT
+
+    # Buscamos en el directorio
+    # un agente de hoteles
+    gr = directory_search_message(DSO.TravelServiceAgent)
+
+    print("rebut")
+    logger.info(gr.serialize(format='turtle'))
+
+    # Obtenemos la direccion del agente de la respuesta
+    # No hacemos ninguna comprobacion sobre si es un mensaje valido
+    msg = gr.value(predicate=RDF.type, object=ACL.FipaAclMessage)
+    content = gr.value(subject=msg, predicate=ACL.content)
+    ragn_addr = gr.value(subject=content, predicate=DSO.Address)
+    ragn_uri = gr.value(subject=content, predicate=DSO.Uri)
+
+    # Ahora mandamos un objeto de tipo request mandando una accion de tipo Search
+    # que esta en una supuesta ontologia de acciones de agentes
     global mss_cnt
     g = Graph()
 
@@ -535,12 +603,12 @@ def buscar_actividades(queue, carga_actividades=None, nivel_precio=2, dias_viaje
         g.add((action, ONTO.RestringidaPor, URIRef(propCultRestriction)))
 
     print("Buscar Actividades v5")
-    msg = build_message(gmess=g, perf=ACL.request, sender=AgentePlanficador.uri, receiver=AgenteActividades.uri,
+    msg = build_message(gmess=g, perf=ACL.request, sender=AgentePlanficador.uri, receiver=ragn_uri,
                         content=action, msgcnt=mss_cnt)
     print("Buscar Actividades v6")
     mss_cnt += 1
     logger.info('Enviar Buscar Activitats')
-    gproducts = send_message(msg, AgenteActividades.address)
+    gproducts = send_message(msg, ragn_addr)
     logger.info('Rebre Buscar Activitats')
 
     print("Buscar Actividades Fin")

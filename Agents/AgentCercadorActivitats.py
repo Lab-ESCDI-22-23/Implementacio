@@ -110,7 +110,7 @@ CACHE_FILE = "./Data/cache_activitats"
 
 # Datos del Agente
 AgenteActividades = Agent('AgenteActividades',
-                       agn.AgentSimple,
+                       agn.TravelServiceAgent,
                        'http://%s:%d/comm' % (hostname, port),
                        'http://%s:%d/Stop' % (hostname, port))
 
@@ -125,7 +125,36 @@ dsgraph = Graph()
 
 cola1 = Queue()
 
-
+def register_message():
+    """
+    Envia un mensaje de registro al servicio de registro
+    usando una performativa Request y una accion Register del
+    servicio de directorio
+    :param gmess:
+    :return:
+    """
+    print('Nos registramos')
+    global mss_cnt
+    gmess = Graph()
+    # Construimos el mensaje de registro
+    gmess.bind('foaf', FOAF)
+    gmess.bind('dso', DSO)
+    reg_obj = agn[AgenteActividades.name + '-Register']
+    gmess.add((reg_obj, RDF.type, DSO.Register))
+    gmess.add((reg_obj, DSO.Uri, AgenteActividades.uri))
+    gmess.add((reg_obj, FOAF.name, Literal(AgenteActividades.name)))
+    gmess.add((reg_obj, DSO.Address, Literal(AgenteActividades.address)))
+    gmess.add((reg_obj, DSO.AgentType, DSO.TravelServiceAgent))
+    # Lo metemos en un envoltorio FIPA-ACL y lo enviamos
+    gr = send_message(
+        build_message(gmess, perf=ACL.request,
+                      sender=AgenteActividades.uri,
+                      receiver=DirectoryAgent.uri,
+                      content=reg_obj,
+                      msgcnt=mss_cnt),
+        DirectoryAgent.address)
+    mss_cnt += 1
+    return gr
 
 def get_count():
     global mss_cnt
@@ -452,11 +481,11 @@ def tidyup():
 
 
 def agentbehavior1(cola):
-    """
-    Un comportamiento del agente
 
-    :return:
-    """
+    # Registramos el agente
+    logger.info('Register')
+    gr = register_message()
+    logger.info('Register Done')
 
     buscar_actividades("Barcelona", 3, 5, 0, 0.5)
     pass
