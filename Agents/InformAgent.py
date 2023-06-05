@@ -189,7 +189,7 @@ def browser_iface():
                 
         hotel = {}
         if (None, RDF.type, ONTO.Hotel) in tripPlanificationGraph:
-            hotelObj = tripPlanificationGraph.value(RDF.type, ONTO.hotel)
+            hotelObj = tripPlanificationGraph.value(RDF.type, ONTO.Hotel)
             hotel['name'] = tripPlanificationGraph.value(hotelObj, ONTO.name)
             hotel['price'] = tripPlanificationGraph.value(hotelObj, ONTO.price)
             hotel['location'] = tripPlanificationGraph.value(hotelObj, ONTO.location)
@@ -205,6 +205,8 @@ def browser_iface():
             tempActivity['type'] = tripPlanificationGraph.value(acctivity, ONTO.type)
             tempActivity['schedule'] = tripPlanificationGraph.value(acctivity, ONTO.schedule)
             activities.append(tempActivity)
+            
+        day
         
         return render_template('planification.html', outboundFlight=outboundFlight, returnFlight=returnFlight, hotel=hotel, activities=activities)
 
