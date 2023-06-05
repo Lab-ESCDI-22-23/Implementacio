@@ -347,8 +347,8 @@ def build_trip(tripRequestGraph: Graph):
     print("ARA FEM VOLS")
     #Afegim vol anada seleccionat
     subject_lodging_flight= onto.VolAnadaSeleccionat
-    chosenLodgingFlight = sorted(resultOutboundFlight,key=lambda hotel:hotel.get("price"))[0]
-    result.add((subject_lodging_flight, RDF.type, ONTO.Hotel))
+    chosenLodgingFlight = sorted(resultOutboundFlight,key=lambda hotel:hotel.get("price"))[1]
+    result.add((subject_lodging_flight, RDF.type, ONTO.Flight))
     result.add((subject_lodging_flight, ONTO.price, Literal(chosenLodgingFlight.get("price"), datatype=XSD.float)))
     result.add((subject_lodging_flight, ONTO.id, Literal(chosenLodgingFlight.get("id"), datatype=XSD.string)))
     result.add((subject_lodging_flight, ONTO.start, Literal(chosenLodgingFlight.get("startDate"), datatype=XSD.string)))
@@ -357,12 +357,12 @@ def build_trip(tripRequestGraph: Graph):
     
     #Afegim vol tornada seleccionat
     subject_return_flight= onto.VolTornadaSeleccionat
-    chosenReturnFlight = sorted(resultReturnFlight,key=lambda hotel:hotel.get("price"))[0]
-    result.add((subject_return_flight, RDF.type, ONTO.Hotel))
+    chosenReturnFlight = sorted(resultReturnFlight,key=lambda hotel:hotel.get("price"))[1]
+    result.add((subject_return_flight, RDF.type, ONTO.Flight))
     result.add((subject_return_flight, ONTO.price, Literal(chosenReturnFlight.get("price"), datatype=XSD.float)))
     result.add((subject_return_flight, ONTO.id, Literal(chosenReturnFlight.get("id"), datatype=XSD.string)))
-    result.add((subject_return_flight, ONTO.start, Literal(chosenReturnFlight.get("start"), datatype=XSD.string)))
-    result.add((subject_return_flight, ONTO.end, Literal(chosenReturnFlight.get("end"), datatype=XSD.string)))
+    result.add((subject_return_flight, ONTO.start, Literal(chosenReturnFlight.get("startDate"), datatype=XSD.string)))
+    result.add((subject_return_flight, ONTO.end, Literal(chosenReturnFlight.get("endDate"), datatype=XSD.string)))
     result.add((subject_return_flight, ONTO.duration, Literal(chosenReturnFlight.get("duration"), datatype=XSD.string)))
 
     print("PUNTO DE CONTROL 0")
@@ -392,7 +392,7 @@ def build_trip(tripRequestGraph: Graph):
         try:
             if activity is not None and "Tarda" in activity.get("schedule") and "Ocio" in activity.get("type") and activity.get("priceLevel") <= rangActivitats:
                 print("antes del append")
-                actividadesMañanaOcio.append(activity)
+                actividadesTardeOcio.append(activity)
                 print("despues del append")
         except:
             pass
@@ -406,7 +406,7 @@ def build_trip(tripRequestGraph: Graph):
             if activity is not None and "Nocturna" in activity.get("schedule") and "Ocio" in activity.get(
                     "type") and activity.get("priceLevel") <= rangActivitats:
                 print("antes del append")
-                actividadesMañanaOcio.append(activity)
+                actividadesNocheOcio.append(activity)
                 print("despues del append")
         except:
             pass
@@ -423,7 +423,7 @@ def build_trip(tripRequestGraph: Graph):
             if activity is not None and "Mati" in activity.get("schedule") and "Cultural" in activity.get(
                     "type") and activity.get("priceLevel") <= rangActivitats:
                 print("antes del append")
-                actividadesMañanaOcio.append(activity)
+                actividadesMañanaCultural.append(activity)
                 print("despues del append")
         except:
             pass
@@ -437,7 +437,7 @@ def build_trip(tripRequestGraph: Graph):
             if activity is not None and "Tarda" in activity.get("schedule") and "Cultural" in activity.get(
                     "type") and activity.get("priceLevel") <= rangActivitats:
                 print("antes del append")
-                actividadesMañanaOcio.append(activity)
+                actividadesTardeCultural.append(activity)
                 print("despues del append")
         except:
             pass
@@ -451,7 +451,7 @@ def build_trip(tripRequestGraph: Graph):
             if activity is not None and "Nocturna" in activity.get("schedule") and "Cultural" in activity.get(
                     "type") and activity.get("priceLevel") <= rangActivitats:
                 print("antes del append")
-                actividadesMañanaOcio.append(activity)
+                actividadesNocheCultural.append(activity)
                 print("despues del append")
         except:
             pass
@@ -460,9 +460,13 @@ def build_trip(tripRequestGraph: Graph):
     print("PUNTO DE CONTROL 0.5")
     numeroOcio=0
     numeroCultural=0
-    
-    cargaActividades=1 
-    diasViaje = 5
+
+    start = datetime.strptime(startDate, '%Y-%m-%d')
+    end = datetime.strptime(endDate, '%Y-%m-%d')
+    days = (end - start).days
+
+    cargaActividades= random.randrange(1,4)
+    diasViaje = days
     print("PUNTO DE CONTROL 1")
     for dia in range(0,diasViaje):
         actividades_count += 1
