@@ -206,7 +206,7 @@ def browser_iface():
         activities = []     
         for acctivity in tripPlanificationGraph.subjects(RDF.type, ONTO.Activity):
             tempActivity = {}
-            activityObj = tripPlanificationGraph.value(RDF.type, ONTO.Activity)
+            activityObj = tripPlanificationGraph.subjects(RDF.type, ONTO.Activity)
             # Get the activities info 
             tempActivity['name'] = tripPlanificationGraph.value(acctivity, ONTO.name)
             tempActivity['priceLevel'] = tripPlanificationGraph.value(acctivity, ONTO.priceLevel)
