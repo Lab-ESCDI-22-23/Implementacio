@@ -174,6 +174,7 @@ def browser_iface():
         
         outboundFlight = {}
         returnFlight = {}
+        
     
         for flight in tripPlanificationGraph.subjects(RDF.type, ONTO.Flight):
             # Get outboundFlight info 
@@ -196,7 +197,7 @@ def browser_iface():
              
         hotel = {}
         if (None, RDF.type, ONTO.Hotel) in tripPlanificationGraph:
-            hotelObj = tripPlanificationGraph.value(RDF.type, ONTO.Hotel)
+            hotelObj = tripPlanificationGraph.subject(RDF.type, ONTO.Hotel)
             hotel['name'] = tripPlanificationGraph.value(hotelObj, ONTO.name)
             hotel['price'] = tripPlanificationGraph.value(hotelObj, ONTO.price)
             hotel['location'] = tripPlanificationGraph.value(hotelObj, ONTO.location)
@@ -220,7 +221,7 @@ def browser_iface():
             horario = actividad['schedule']
             if horario == "Mati-Tarda":
                 morningActivities.append(actividad)
-            elif horario == "Tarda-Nocturn":
+            elif horario == "Nocturna-Tarda":
                 afternoneActivities.append(actividad)
             elif horario == 'Nocturna':
                 nightActivities.append(actividad)
