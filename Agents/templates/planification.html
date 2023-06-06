@@ -30,7 +30,7 @@
             <th>Nivel de precio</th>
             <th>Tipo</th>
         </tr>
-        {% if activities %} {% for activity in morningActivities %}
+        {% if morningActivities %} {% for activity in morningActivities %}
         <tr>
             <td>{{ activity['name'] }}</td>
             <td>{{ activity['priceLevel'] }}</td>
@@ -46,7 +46,7 @@
             <th>Nivel de precio</th>
             <th>Tipo</th>
         </tr>
-        {% if activities %} {% for activity in afternoneActivities %}
+        {% if afternoneActivities %} {% for activity in afternoneActivities %}
         <tr>
             <td>{{ activity['name'] }}</td>
             <td>{{ activity['priceLevel'] }}</td>
@@ -62,7 +62,7 @@
             <th>Nivel de precio</th>
             <th>Tipo</th>
         </tr>
-        {% if activities %} {% for activity in nightActivities %}
+        {% if nightActivities %} {% for activity in nightActivities %}
         <tr>
             <td>{{ activity['name'] }}</td>
             <td>{{ activity['priceLevel'] }}</td>
