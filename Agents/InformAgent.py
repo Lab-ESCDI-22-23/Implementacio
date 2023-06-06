@@ -190,8 +190,8 @@ def browser_iface():
                 returnFlight['duration'] = tripPlanificationGraph.value(flight, ONTO.duration)
                 returnFlight['date'] = tripPlanificationGraph.value(flight, ONTO.start)
                 
-        startDate = datetime.strptime(outboundFlight['date'], '%Y-%m-%d')
-        endDate = datetime.strptime(returnFlight['date'], '%Y-%m-%d')
+        startDate = datetime.strptime(outboundFlight['date'].split("T")[0], '%Y-%m-%d')
+        endDate = datetime.strptime(returnFlight['date'].split("T")[0], '%Y-%m-%d')
         days = (endDate-startDate).days
              
         hotel = {}
