@@ -196,23 +196,25 @@ def browser_iface():
         days = (endDate-startDate).days
              
         hotel = {}
-        if (None, RDF.type, ONTO.Hotel) in tripPlanificationGraph:
-            hotelObj = tripPlanificationGraph.subject(RDF.type, ONTO.Hotel)
-            hotel['name'] = tripPlanificationGraph.value(hotelObj, ONTO.name)
-            hotel['price'] = tripPlanificationGraph.value(hotelObj, ONTO.price)
-            hotel['location'] = tripPlanificationGraph.value(hotelObj, ONTO.location)
+        for hotel in tripPlanificationGraph.subjects(RDF.type, ONTO.Flight):
+            if (None, ONTO.lodging, hotel) in tripPlanificationGraph:
+                hotelObj = tripPlanificationGraph.subjects(RDF.type, ONTO.Hotel)
+                hotel['name'] = tripPlanificationGraph.value(hotelObj, ONTO.name)
+                hotel['price'] = tripPlanificationGraph.value(hotelObj, ONTO.price)
+                hotel['location'] = tripPlanificationGraph.value(hotelObj, ONTO.location)
 
 
         activities = []     
-        for acctivity in tripPlanificationGraph.subjects(RDF.type, ONTO.Activity):
-            tempActivity = {}
-            activityObj = tripPlanificationGraph.subjects(RDF.type, ONTO.Activity)
-            # Get the activities info 
-            tempActivity['name'] = tripPlanificationGraph.value(acctivity, ONTO.name)
-            tempActivity['priceLevel'] = tripPlanificationGraph.value(acctivity, ONTO.priceLevel)
-            tempActivity['type'] = tripPlanificationGraph.value(acctivity, ONTO.type)
-            tempActivity['schedule'] = tripPlanificationGraph.value(acctivity, ONTO.schedule)
-            activities.append(tempActivity)
+        for activity in tripPlanificationGraph.subjects(RDF.type, ONTO.Activity):
+            if (None, ONTO.planedActivity, activity):
+                tempActivity = {}
+                #activityObj = tripPlanificationGraph.subjects(RDF.type, ONTO.Activity)
+                # Get the activities info 
+                tempActivity['name'] = tripPlanificationGraph.value(activity, ONTO.name)
+                tempActivity['priceLevel'] = tripPlanificationGraph.value(activity, ONTO.priceLevel)
+                tempActivity['type'] = tripPlanificationGraph.value(activity, ONTO.type)
+                tempActivity['schedule'] = tripPlanificationGraph.value(activity, ONTO.schedule)
+                activities.append(tempActivity)
             
         morningActivities = []
         afternoneActivities = []     
