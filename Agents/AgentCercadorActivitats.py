@@ -428,8 +428,8 @@ def activities_seach(ciudad_destino="Barcelona", nivel_precio=2, dias_viaje=0, p
         print("Proporcion ludido y festiva: " + str(proporcion_ludico_festiva))
         print("Proporcion cultural: " + str(proporcion_cultural))
 
-        #if (leer_estado_cache() == ciudad_destino):
-        if (0):
+        if (leer_estado_cache() == ciudad_destino):
+            #if (0):
             print("ACCES A CACHE")
             actividades_totales = leer_cache(proporcion_ludico_festiva, proporcion_cultural)
 

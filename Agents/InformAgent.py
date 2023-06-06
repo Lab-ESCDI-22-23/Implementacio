@@ -174,7 +174,8 @@ def browser_iface():
         
         outboundFlight = {}
         returnFlight = {}
-        
+
+        print(tripPlanificationGraph.serialize(format="turtle"))
     
         for flight in tripPlanificationGraph.subjects(RDF.type, ONTO.Flight):
             # Get outboundFlight info 
@@ -196,26 +197,30 @@ def browser_iface():
         days = (endDate-startDate).days
              
         hotel = {}
-        for hotel in tripPlanificationGraph.subjects(RDF.type, ONTO.Flight):
-            if (None, ONTO.lodging, hotel) in tripPlanificationGraph:
-                hotelObj = tripPlanificationGraph.subjects(RDF.type, ONTO.Hotel)
-                hotel['name'] = tripPlanificationGraph.value(hotelObj, ONTO.name)
-                hotel['price'] = tripPlanificationGraph.value(hotelObj, ONTO.price)
-                hotel['location'] = tripPlanificationGraph.value(hotelObj, ONTO.location)
+        for hoteles in tripPlanificationGraph.subjects(RDF.type, ONTO.Hotel):
+            print("Entrem bucle hotel")
+            if (None, ONTO.lodging, hoteles) in tripPlanificationGraph:
+                hotel['name'] = str(tripPlanificationGraph.value(hoteles, ONTO.name))
+                hotel['price'] = str(tripPlanificationGraph.value(hoteles, ONTO.price))
+                hotel['location'] = str(tripPlanificationGraph.value(hoteles, ONTO.location))
 
 
         activities = []     
         for activity in tripPlanificationGraph.subjects(RDF.type, ONTO.Activity):
-            if (None, ONTO.planedActivity, activity):
+            print("Entrem bucle activity")
+            if (None, ONTO.planedActivity, activity) in tripPlanificationGraph:
                 tempActivity = {}
                 #activityObj = tripPlanificationGraph.subjects(RDF.type, ONTO.Activity)
                 # Get the activities info 
-                tempActivity['name'] = tripPlanificationGraph.value(activity, ONTO.name)
-                tempActivity['priceLevel'] = tripPlanificationGraph.value(activity, ONTO.priceLevel)
-                tempActivity['type'] = tripPlanificationGraph.value(activity, ONTO.type)
-                tempActivity['schedule'] = tripPlanificationGraph.value(activity, ONTO.schedule)
+                tempActivity['name'] = str(tripPlanificationGraph.value(activity, ONTO.name))
+                tempActivity['priceLevel'] = str(tripPlanificationGraph.value(activity, ONTO.priceLevel))
+                tempActivity['type'] = str(tripPlanificationGraph.value(activity, ONTO.type))
+                tempActivity['schedule'] = str(tripPlanificationGraph.value(activity, ONTO.schedule))
+                print(tempActivity)
                 activities.append(tempActivity)
-            
+
+        print(activities)
+
         morningActivities = []
         afternoneActivities = []     
         nightActivities = []   
@@ -228,6 +233,9 @@ def browser_iface():
             elif horario == 'Nocturna':
                 nightActivities.append(actividad)
 
+        print(morningActivities)
+        print(afternoneActivities)
+        print(nightActivities)
         
          # Pasar las listas de actividades a la plantilla
         return render_template('planification.html', outboundFlight=outboundFlight, returnFlight=returnFlight, hotel=hotel, morningActivities=morningActivities, afternoneActivities=afternoneActivities, nightActivities=nightActivities)
