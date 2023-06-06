@@ -218,40 +218,16 @@ def browser_iface():
         nightActivities = []   
         for actividad in activities:
             horario = actividad['schedule']
-        if 'Mati-Tarda' in horario.lower():
-            morningActivities.append(actividad)
-        elif 'Tarda-Nocturna' in horario.lower():
-            afternoneActivities.append(actividad)
-        elif 'Nocturna' in horario.lower():
-            nightActivities.append(actividad)
+            if horario == "Mati-Tarda":
+                morningActivities.append(actividad)
+            elif horario == "Tarda-Nocturn":
+                afternoneActivities.append(actividad)
+            elif horario == 'Nocturna':
+                nightActivities.append(actividad)
 
-        
-        # Calcular cantidad aproximada de actividades por día y por franja horaria
-        cantidad_actividades = len(activities)
-        franjas_horarias = ['Mati-Tarda', 'Tarda-Nocturna', 'Nocturna']
-        actividades_por_dia_por_franja = cantidad_actividades // (days * len(franjas_horarias))
-        actividades_extra = cantidad_actividades % (days * len(franjas_horarias))
-
-        # Distribuir las actividades entre las franjas horarias y los días
-        dias_actividades = [[] for _ in range(days)]
-
-        indice_actividad = 0
-        for dia in range(days):
-            for franja in franjas_horarias:
-                actividades_franja = actividades_por_dia_por_franja
-                if actividades_extra > 0:
-                    actividades_franja += 1
-                    actividades_extra -= 1
-
-                for _ in range(actividades_franja):
-                    if indice_actividad < cantidad_actividades:
-                        actividad = activities[indice_actividad]
-                        actividad['franja'] = franja
-                        dias_actividades[dia].append(actividad)
-                        indice_actividad += 1
         
          # Pasar las listas de actividades a la plantilla
-        return render_template('planificacion.html', outboundFlight=outboundFlight, returnFlight=returnFlight, hotel=hotel, morningActivities=morningActivities, afternoneActivities=afternoneActivities, nightActivities=nightActivities)
+        return render_template('planification.html', outboundFlight=outboundFlight, returnFlight=returnFlight, hotel=hotel, morningActivities=morningActivities, afternoneActivities=afternoneActivities, nightActivities=nightActivities)
 
 
 @app.route("/comm")
