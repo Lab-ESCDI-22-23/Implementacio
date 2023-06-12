@@ -266,8 +266,8 @@ def buscar_actividades_festivas(ciudad="Barcelona"):
 
         for item in data.get("results", []):
             name = item.get("name")
-            price_level = item.get("price_level", "-1")
-            result = {"name": name, "price_level": price_level, "time": time[i], "type": "Ocio"}
+            priceLevel = item.get("price_level", "-1")
+            result = {"name": name, "priceLevel": priceLevel, "schedule": time[i], "type": "Ocio"}
             results.append(result)
 
 
@@ -296,8 +296,8 @@ def buscar_actividades_culturales(ciudad="Barcelona"):
 
         for item in data.get("results", []):
             name = item.get("name")
-            price_level = item.get("price_level", "-1")
-            result = {"name": name, "price_level": price_level, "time": time[i], "type": "Cultural"}
+            priceLevel = item.get("price_level", "-1")
+            result = {"name": name, "priceLevel": priceLevel, "schedule": time[i], "type": "Cultural"}
             results.append(result)
 
     print("FIN LLAMADA API - TODO OK")
@@ -314,19 +314,16 @@ def guardar_cache(cache, ciudad_destino=""):
         actividades_count += 1
         subject_actividades = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#Actividad" + str(actividades_count))
         name = result['name']
-        price_level = result['price_level']
-        time = result['time']
+        priceLevel = result['priceLevel']
+        time = result['schedule']
         type = result['type']
         g.add((subject_actividades, RDF.type, ONTO.Activity))
         g.add((subject_actividades, ONTO.name, Literal(name, datatype=XSD.string)))
-        g.add((subject_actividades, ONTO.price, Literal(price_level, datatype=XSD.integer)))
+        g.add((subject_actividades, ONTO.priceLevel, Literal(priceLevel, datatype=XSD.integer)))
         g.add((subject_actividades, ONTO.schedule, Literal(time, datatype=XSD.string)))
         g.add((subject_actividades, ONTO.type, Literal(type, datatype=XSD.string)))
 
     # Actualización de los datos en Fuseki
-    subject_cabeceraMC = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#CabeceraMC")
-    g.add((subject_cabeceraMC, RDF.type, ONTO.CabeceraMC))
-    g.add((subject_cabeceraMC, ONTO.on, Literal(ciudad_destino, datatype=XSD.string)))
 
     # Borrar el contenido previo en Fuseki
     delete_query = """
@@ -370,23 +367,22 @@ def leer_cache(proporcion_ludico_festiva=0.5, proporcion_cultural=0.5):
     query = """
         prefix default:<http://www.owl-ontologies.com/OntologiaECSDI.owl#>
         prefix rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        SELECT ?actividad ?nombre ?precio ?time ?type
+        SELECT ?actividad ?nombre ?precio ?time ?tipo
         WHERE {
             GRAPH <http://www.owl-ontologies.com/OntologiaECSDI.owl> {
-                { ?actividad rdf:type default:Actividad}.
-                ?actividad default:NombreActividad ?nombre .
-                ?actividad default:NivelPrecio ?precio .
-                ?actividad default:Horario ?time .
-                ?actividad default:TipoActividad ?type .   
-            
-    """
+                { ?actividad rdf:type default:Activity}.
+                ?actividad default:name ?nombre .
+                ?actividad default:priceLevel ?precio .
+                ?actividad default:schedule ?time .
+                ?actividad default:type ?tipo .
+            """
 
-    if(proporcion_ludico_festiva != 0 and proporcion_cultural == 0):
-        query += """FILTER( str(?type) = 'Ocio')}}"""
-    elif(proporcion_ludico_festiva == 0 and proporcion_cultural != 0):
-        query += """FILTER( str(?type) = 'Cultural')}}"""
+    if (proporcion_ludico_festiva != 0 and proporcion_cultural == 0):
+        query += """FILTER( str(?tipo) = 'Ocio')}}"""
+    elif (proporcion_ludico_festiva == 0 and proporcion_cultural != 0):
+        query += """FILTER( str(?tipo) = 'Cultural')}}"""
     else:
-        query +="""}}"""
+        query += """}}"""
 
     # Realizar la consulta SPARQL a Fuseki
     response = requests.post(f"{FUSEKI_ENDPOINT}/query", data={"query": query})
@@ -400,10 +396,10 @@ def leer_cache(proporcion_ludico_festiva=0.5, proporcion_cultural=0.5):
         resultados = []
         for binding in bindings:
             nombre = binding.get("nombre", {}).get("value", "")
-            precio = int(binding.get("precio", {}).get("value", ""))
+            precio = binding.get("precio", {}).get("value", "")
             time = binding.get("time", {}).get("value", "")
-            type = binding.get("type", {}).get("value", "")
-            resultados.append({"name": nombre, "price_level": precio, "time": time, "type": type})
+            type = binding.get("tipo", {}).get("value", "")
+            resultados.append({"name": nombre, "priceLevel": precio, "schedule": time, "type": type})
 
         return resultados
     else:
@@ -418,17 +414,19 @@ def guardar_estado_cache(ciudad_destino=""):
 
 def leer_estado_cache():
     with open(CACHE_FILE, "r") as file:
-        return file.readline().strip()
+        ciutat = file.readline().strip()
+        print(ciutat)
+        return ciutat
 
 def activities_seach(ciudad_destino="Barcelona", nivel_precio=2, dias_viaje=0, proporcion_ludico_festiva=0.5, proporcion_cultural=0.5):
 
-        print("ciudad destino: " + ciudad_destino)
+        print("ciudad destino: " + repr(ciudad_destino))
         print("nivel precio: " + str(nivel_precio))
         print("dias viaje: " + str(dias_viaje))
         print("Proporcion ludido y festiva: " + str(proporcion_ludico_festiva))
         print("Proporcion cultural: " + str(proporcion_cultural))
 
-        if (leer_estado_cache() == ciudad_destino):
+        if (leer_estado_cache() == str(ciudad_destino)):
             #if (0):
             print("ACCES A CACHE")
             actividades_totales = leer_cache(proporcion_ludico_festiva, proporcion_cultural)
@@ -442,19 +440,24 @@ def activities_seach(ciudad_destino="Barcelona", nivel_precio=2, dias_viaje=0, p
             elif (proporcion_ludico_festiva == 0 and proporcion_cultural != 0): actividades_totales = actividades_culturales
             elif (proporcion_ludico_festiva != 0 and proporcion_cultural == 0): actividades_totales = actividades_ludico_festivas
 
-
-
-        actividades_filtradas = [actividad for actividad in actividades_totales if int(actividad["price_level"]) <= nivel_precio]
+        actividades_filtradas = []
+        for actividad in actividades_totales:
+            try:
+                if int(actividad["priceLevel"]) <= int(nivel_precio):
+                    actividades_filtradas.append(actividad)
+            except:
+                print(actividad["priceLevel"])
+                pass
 
         result = Graph()
         actividades_count = 0
 
         for consulta in actividades_filtradas:
             name = consulta["name"]
-            price_level = consulta["price_level"]
+            priceLevel = consulta["priceLevel"]
             print("Nombre: " + name)
-            print("Price level: " + str(price_level))
-            time = consulta["time"]
+            print("Price level: " + str(priceLevel))
+            time = consulta["schedule"]
             print("Este es el horario: " + time)
             tipo = consulta["type"]
             print("Tipo Actividad: " + tipo)
@@ -464,7 +467,7 @@ def activities_seach(ciudad_destino="Barcelona", nivel_precio=2, dias_viaje=0, p
             subject_actividades = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#Activity" + str(actividades_count))
             result.add((subject_actividades, RDF.type, ONTO.Activity))
             result.add((subject_actividades, ONTO.name, Literal(name, datatype=XSD.string)))
-            result.add((subject_actividades, ONTO.priceLevel, Literal(price_level, datatype=XSD.integer)))
+            result.add((subject_actividades, ONTO.priceLevel, Literal(priceLevel, datatype=XSD.integer)))
             result.add((subject_actividades, ONTO.schedule, Literal(time, datatype=XSD.string)))
             result.add((subject_actividades, ONTO.type, Literal(tipo, datatype=XSD.string)))
 
@@ -501,6 +504,7 @@ def startAndWait(endQueue):
     """
     # Register the Agent
     regResponseGraph = register_message()
+    #activities_seach("Barcelona", 2, 4, 0.5, 0)
 
     # Wait until the 0 arrives to End
     end = False
