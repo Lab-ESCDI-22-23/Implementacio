@@ -194,6 +194,7 @@ def browser_iface():
                 
         startDate = datetime.strptime(outboundFlight['date'].split("T")[0], '%Y-%m-%d')
         endDate = datetime.strptime(returnFlight['date'].split("T")[0], '%Y-%m-%d')
+       
         days = (endDate-startDate).days
              
         hotel = {}
@@ -224,6 +225,7 @@ def browser_iface():
         morningActivities = []
         afternoneActivities = []     
         nightActivities = []   
+        
         for actividad in activities:
             horario = actividad['schedule']
             if horario == "Mati-Tarda":
@@ -232,7 +234,12 @@ def browser_iface():
                 afternoneActivities.append(actividad)
             elif horario == 'Nocturna':
                 nightActivities.append(actividad)
+                
+        days = (endDate-startDate).days
+                
+        planificacion = distribuir_actividades(morningActivities, afternoneActivities, nightActivities, days)
 
+        print(planificacion)
         print(morningActivities)
         print(afternoneActivities)
         print(nightActivities)
@@ -240,6 +247,45 @@ def browser_iface():
          # Pasar las listas de actividades a la plantilla
         return render_template('planification.html', outboundFlight=outboundFlight, returnFlight=returnFlight, hotel=hotel, morningActivities=morningActivities, afternoneActivities=afternoneActivities, nightActivities=nightActivities)
 
+
+def distribuir_actividades(morningActivities, afternoneActivities, nightActivities, days):
+    num_activities = len(morningActivities) + len(afternoneActivities) + len(nightActivities)
+    promedio_actividades = num_activities // days
+
+    actividades_manana = promedio_actividades // 3
+    actividades_tarde = promedio_actividades // 3
+    actividades_noche = promedio_actividades // 3
+
+    # Ajustar distribución si no es divisible exactamente por el número de días
+    actividades_sobrantes = num_activities - (promedio_actividades * days)
+    actividades_manana += actividades_sobrantes
+
+    # Asignar actividades a los días de viaje y franjas horarias
+    dias_viaje = [f"Día {i+1}" for i in range(days)]
+    franjas_horarias = ["Mañana", "Tarde", "Noche"]
+    planificacion = {}
+
+    for dia in dias_viaje:
+        planificacion[dia] = {
+            "Mañana": [],
+            "Tarde": [],
+            "Noche": []
+        }
+
+    for i, dia in enumerate(dias_viaje):
+        for _ in range(actividades_manana):
+            if len(morningActivities) > 0:
+                planificacion[dia]["Mañana"].append(morningActivities.pop(0))
+
+        for _ in range(actividades_tarde):
+            if len(afternoneActivities) > 0:
+                planificacion[dia]["Tarde"].append(afternoneActivities.pop(0))
+
+        for _ in range(actividades_noche):
+            if len(nightActivities) > 0:
+                planificacion[dia]["Noche"].append(nightActivities.pop(0))
+
+    return planificacion
 
 @app.route("/comm")
 def comunicacion():
