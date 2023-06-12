@@ -310,6 +310,116 @@ def build_trip(tripRequestGraph: Graph):
     result.add((hotelObj, ONTO.price, Literal("1000000")))
     result.add((hotelObj, ONTO.location, Literal("En medio")))
     
+    activities = [
+        {
+            'name' : 'activitat  mati 1',
+            'priceLevel' : '1',
+            'type': "ludico",
+            'schedule': 'Mati-Tarda'
+        },
+        {
+            'name' : 'activitat  mati 2',
+            'priceLevel' : '1',
+            'type': "ludico",
+            'schedule': 'Mati-Tarda'
+        },
+        {
+            'name' : 'activitat  mati 3',
+            'priceLevel' : '1',
+            'type': "ludico",
+            'schedule': 'Mati-Tarda'
+        },
+        {
+            'name' : 'activitat  mati 4',
+            'priceLevel' : '1',
+            'type': "ludico",
+            'schedule': 'Mati-Tarda'
+        },
+        {
+            'name' : 'activitat tarda 1',
+            'priceLevel' : '1',
+            'type': "ludico",
+            'schedule': 'Nocturna-Tarda'
+        },
+        {
+            'name' : 'activitat tarda 2',
+            'priceLevel' : '1',
+            'type': "ludico",
+            'schedule': 'Nocturna-Tarda'
+        },
+        {
+            'name' : 'activitat tarda 3',
+            'priceLevel' : '1',
+            'type': "ludico",
+            'schedule': 'Nocturna-Tarda'
+        },
+        {
+            'name' : 'activitat tarda 4',
+            'priceLevel' : '1',
+            'type': "ludico",
+            'schedule': 'Nocturna-Tarda'
+        },
+        {
+            'name' : 'activitat tarda 5',
+            'priceLevel' : '1',
+            'type': "ludico",
+            'schedule': 'Nocturna-Tarda'
+        },
+        {
+            'name' : 'activitat tarda 6',
+            'priceLevel' : '1',
+            'type': "ludico",
+            'schedule': 'Nocturna-Tarda'
+        },
+        {
+            'name' : 'activitat tarda 7',
+            'priceLevel' : '1',
+            'type': "ludico",
+            'schedule': 'Nocturna-Tarda'
+        },
+        {
+            'name' : 'activitat nit 1',
+            'priceLevel' : '1',
+            'type': "ludico",
+            'schedule': 'Nocturna'
+        },
+        {
+            'name' : 'activitat nit 2',
+            'priceLevel' : '1',
+            'type': "ludico",
+            'schedule': 'Nocturna'
+        },
+        {
+            'name' : 'activitat nit 3',
+            'priceLevel' : '1',
+            'type': "ludico",
+            'schedule': 'Nocturna'
+        },
+        {
+            'name' : 'activitat nit 4',
+            'priceLevel' : '1',
+            'type': "ludico",
+            'schedule': 'Nocturna'
+        },
+        {
+            'name' : 'activitat nit 5',
+            'priceLevel' : '1',
+            'type': "ludico",
+            'schedule': 'Nocturna'
+        },  
+    ]
+    
+    actividades_count = 1
+    for chosenActivity in activities:
+        subject_actividades = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#ActividadSeleccionada" + str(actividades_count))
+        result.add((subject_actividades, RDF.type, ONTO.Activity))
+        result.add((subject_actividades, ONTO.name, Literal(chosenActivity.get("name"), datatype=XSD.string)))
+        result.add((subject_actividades, ONTO.priceLevel, Literal(chosenActivity.get("priceLevel"), datatype=XSD.integer)))
+        result.add((subject_actividades, ONTO.type, Literal(chosenActivity.get("type"), datatype=XSD.string)))
+        result.add((subject_actividades, ONTO.schedule, Literal(chosenActivity.get("schedule"), datatype=XSD.string)))
+        result.add((tripPlanificationObj, ONTO.planedActivity, subject_actividades))
+        actividades_count += 1
+    
     return result
 
 # --------------- Functions to keep the server runing ---------------
