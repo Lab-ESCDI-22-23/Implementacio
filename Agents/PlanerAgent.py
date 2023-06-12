@@ -290,27 +290,23 @@ def build_trip(tripRequestGraph: Graph):
     returnFlightGraph = Graph()
     outboundFlightSearch = Process(target=search_flights, args=(q1, origin, destination, startDate, budget, outboundFlightGraph))
     returnFlightSearch = Process(target=search_flights, args=(q2, destination, origin, endDate, budget, returnFlightGraph))
-    
-    outboundFlightSearch.start()
-    returnFlightSearch.start()
-    
-    outboundFlightSearch.join()
-    returnFlightSearch.join()
 
-
+    activitiesGraph = Graph()
+    activitiesSearch = Process(target=search_activities, args=(
+    q4, destination, festive, cultural, playful, 3, startDate, endDate, activitiesGraph))
 
     hotelsGraph = Graph()
     hotelsSearch = Process(target=search_hotels, args=(q3, destination, location, budget, hotelsGraph))
+
+    outboundFlightSearch.start()
+    returnFlightSearch.start()
     hotelsSearch.start()
-    hotelsSearch.join()
-
-    
-    #TODO
-    activitiesGraph = Graph()
-    activitiesSearch = Process(target=search_activities, args=(q4, destination, festive, cultural, playful, 3, startDate, endDate, activitiesGraph))
     activitiesSearch.start()
-    activitiesSearch.join()
 
+    outboundFlightSearch.join()
+    returnFlightSearch.join()
+    hotelsSearch.join()
+    activitiesSearch.join()
 
     resultOutboundFlight = q1.get()
     resultReturnFlight = q2.get()
