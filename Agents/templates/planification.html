@@ -23,54 +23,60 @@
     <p>Precio: {{ hotel['price'] }}</p>
     <p>Ubicación: {{ hotel['location'] }}</p>
 
-    <h1>Actividades Mañana</h1>
-    <table>
-        <tr>
-            <th>Nombre</th>
-            <th>Nivel de precio</th>
-            <th>Tipo</th>
-        </tr>
-        {% if morningActivities %} {% for activity in morningActivities %}
-        <tr>
-            <td>{{ activity['name'] }}</td>
-            <td>{{ activity['priceLevel'] }}</td>
-            <td>{{ activity['type'] }}</td>
-            <td>{{ activity['schedule'] }}</td>
-        </tr>
-        {% endfor %} {% endif %}
-    </table>
-    <h1>Actividades Tarde</h1>
-    <table>
-        <tr>
-            <th>Nombre</th>
-            <th>Nivel de precio</th>
-            <th>Tipo</th>
-        </tr>
-        {% if afternoneActivities %} {% for activity in afternoneActivities %}
-        <tr>
-            <td>{{ activity['name'] }}</td>
-            <td>{{ activity['priceLevel'] }}</td>
-            <td>{{ activity['type'] }}</td>
-            <td>{{ activity['schedule'] }}</td>
-        </tr>
-        {% endfor %} {% endif %}
-    </table>
-    <h1>Actividades Noche</h1>
-    <table>
-        <tr>
-            <th>Nombre</th>
-            <th>Nivel de precio</th>
-            <th>Tipo</th>
-        </tr>
-        {% if nightActivities %} {% for activity in nightActivities %}
-        <tr>
-            <td>{{ activity['name'] }}</td>
-            <td>{{ activity['priceLevel'] }}</td>
-            <td>{{ activity['type'] }}</td>
-            <td>{{ activity['schedule'] }}</td>
-        </tr>
-        {% endfor %} {% endif %}
-    </table>
+    {% for dia, actividades in planificacion.items() %}
+        <h2>{{ dia }}</h2>
+        <h3>Mañana</h3>
+        <table>
+            <tr>
+                <th>Nombre</th>
+                <th>Nivel de precio</th>
+                <th>Tipo</th>
+            </tr>
+            {% for actividad in actividades['Mañana'] %}
+            <tr>
+                <td>{{ actividad['name'] }}</td>
+                <td>{{ actividad['priceLevel'] }}</td>
+                <td>{{ actividad['type'] }}</td>
+                <td>{{ actividad['schedule'] }}</td>
+            </tr>
+            {% endfor %} 
+        </table>
+
+
+        <h3>Tarde</h3>
+        <table>
+            <tr>
+                <th>Nombre</th>
+                <th>Nivel de precio</th>
+                <th>Tipo</th>
+            </tr>
+            {% for actividad in actividades['Tarde'] %}
+            <tr>
+                <td>{{ actividad['name'] }}</td>
+                <td>{{ actividad['priceLevel'] }}</td>
+                <td>{{ actividad['type'] }}</td>
+                <td>{{ actividad['schedule'] }}</td>
+            </tr>
+            {% endfor %} 
+        </table>
+
+        <h3>Noche</h3>
+        <table>
+            <tr>
+                <th>Nombre</th>
+                <th>Nivel de precio</th>
+                <th>Tipo</th>
+            </tr>
+            {% for actividad in actividades['Noche'] %}
+            <tr>
+                <td>{{ actividad['name'] }}</td>
+                <td>{{ actividad['priceLevel'] }}</td>
+                <td>{{ actividad['type'] }}</td>
+                <td>{{ actividad['schedule'] }}</td>
+            </tr>
+            {% endfor %} 
+        </table>
+    {% endfor %}
 </body>
 
 </html>
