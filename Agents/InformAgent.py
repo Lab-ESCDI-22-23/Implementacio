@@ -12,6 +12,7 @@ Agente que se registra como agente de hoteles y espera peticiones
 from multiprocessing import Process, Queue
 import logging
 import argparse
+import random
 
 from flask import Flask, render_template, request
 from rdflib import Graph, Namespace, Literal, XSD, URIRef
@@ -194,7 +195,10 @@ def browser_iface():
                 
     
        
-        days = 3
+
+        start = datetime.strptime(tripStart, '%Y-%m-%d')
+        end = datetime.strptime(tripEnd, '%Y-%m-%d')
+        days = (end - start).days
              
         hotel = {}
         for hoteles in tripPlanificationGraph.subjects(RDF.type, ONTO.Hotel):
@@ -226,13 +230,22 @@ def browser_iface():
         for actividad in activities:
             horario = actividad['schedule']
             if horario == "Mati-Tarda":
-                morningActivities.append(actividad)
+                rnd = random.randrange(0, 2)
+                if(rnd):
+                    morningActivities.append(actividad)
+                else:
+                    afternoneActivities.append(actividad)
             elif horario == "Nocturna-Tarda":
-                afternoneActivities.append(actividad)
+                rnd = random.randrange(0, 1)
+                if(rnd):
+                    afternoneActivities.append(actividad)
+                else:
+                    nightActivities.append(actividad)
             elif horario == 'Nocturna':
+                print("Enter here")
                 nightActivities.append(actividad)
                 
-        days = 3
+
                 
         planificacion = distribuir_actividades(morningActivities, afternoneActivities, nightActivities, days)
 

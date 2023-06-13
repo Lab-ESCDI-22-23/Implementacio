@@ -411,8 +411,7 @@ def build_trip(tripRequestGraph: Graph):
         aux = activity is not None
         print("es: " + str(aux))
         try:
-            if activity is not None and "Nocturna" in activity.get("schedule") and "Ocio" in activity.get(
-                    "type") and activity.get("priceLevel") <= rangActivitats:
+            if activity is not None and "Nocturna" in activity.get("schedule") and "Ocio" in activity.get("type") and activity.get("priceLevel") <= rangActivitats:
                 print("antes del append")
                 actividadesNocheOcio.append(activity)
                 print("despues del append")
@@ -473,7 +472,7 @@ def build_trip(tripRequestGraph: Graph):
     end = datetime.strptime(endDate, '%Y-%m-%d')
     days = (end - start).days
 
-    cargaActividades= random.randrange(1,4)
+    cargaActividades= random.randrange(2,6)
     diasViaje = days
     print("PUNTO DE CONTROL 1")
     for dia in range(0,diasViaje):
@@ -558,9 +557,9 @@ def build_trip(tripRequestGraph: Graph):
             if float(numeroOcio)/float(playful) <= float(numeroCultural)/float(cultural):
                 chosenActivity = (actividadesNocheOcio)[random.randrange(0,len((actividadesNocheOcio)))]
                 numeroOcio+=1
-            else:
-                chosenActivity = (actividadesNocheCultural)[random.randrange(0,len((actividadesNocheCultural)))]
-                numeroCultural+=1
+
+            chosenActivity = (actividadesNocheCultural)[random.randrange(0,len((actividadesNocheCultural)))]
+            numeroCultural+=1
                 
             subject_actividades = URIRef("http://www.owl-ontologies.com/OntologiaECSDI.owl#ActividadSeleccionada" + str(actividades_count))
             result.add((subject_actividades, RDF.type, ONTO.Activity))
