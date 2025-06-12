@@ -1,1 +1,1 @@
-# Implementacio
+This project is a distributed system thats works with agents that can be executed in the same or diferent computers. The program designs a perfect holiday for you! Just give it some parameters: dates, activity preference, ... and it will give you a complete holiday including destination, flights, activity suggestions, and places to stay.
